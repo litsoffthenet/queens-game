@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0F0F13">
+<title>Queens</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  :root{
+    --bg:#0F0F13;
+    --surface:#1A1A22;
+    --surface2:#22222E;
+    --border:#2E2E3E;
+    --text:#E8E8F0;
+    --text-muted:#7878A0;
+    --accent:#7C6FE0;
+    --accent2:#E06FAA;
+    --success:#5DDC8E;
+    --warn:#F0B429;
+    --danger:#F05C5C;
+    --hint:#7C6FE0;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{min-height:100%;}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg);color:var(--text);
+    min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+    padding:max(20px,env(safe-area-inset-top)) 16px calc(env(safe-area-inset-bottom) + 24px);
+    -webkit-user-select:none;user-select:none;overflow-x:hidden;
+  }
+
+  /* ---------- header ---------- */
+  header{text-align:center;margin-bottom:24px;}
+  .brand{display:inline-flex;align-items:stretch;gap:12px;justify-content:center;}
+  /* logo: a crown resting slightly above a letter H */
+  .logo{position:relative;display:inline-flex;flex-direction:column;align-items:center;line-height:1;}
+  .logo-crown{
+    font-size:1.25rem;line-height:1;margin-bottom:3px;color:var(--accent);
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  }
+  .logo-h{
+    font-size:2rem;font-weight:800;line-height:.85;letter-spacing:-.02em;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  /* "Queens" matches the full height of the crown+H logo */
+  header h1{
+    font-size:2.85rem;font-weight:700;letter-spacing:-.04em;line-height:1;
+    display:flex;align-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  header .subtitle{color:var(--text-muted);font-size:.85rem;margin-top:8px;letter-spacing:.02em;}
+
+  /* ---------- setup ---------- */
+  #setup{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:32px 28px;width:100%;max-width:420px;text-align:center;
+    display:flex;flex-direction:column;gap:0;
+  }
+  #setup .block{margin-bottom:24px;}
+  #setup .block:last-of-type{margin-bottom:0;}
+  #setup h2{font-size:1.1rem;font-weight:600;margin-bottom:18px;}
+  .eyebrow{
+    font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--text-muted);margin-bottom:14px;text-align:left;
+  }
+  .sizes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .size-btn{
+    width:52px;height:52px;border-radius:12px;border:2px solid var(--border);
+    background:var(--surface2);color:var(--text);font-size:1.1rem;font-weight:600;
+    cursor:pointer;transition:all .15s;font-family:inherit;
+  }
+  .size-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .size-btn:active{transform:scale(.93);}
+  .size-btn.sel{border-color:var(--accent);background:rgba(124,111,224,.16);color:var(--accent);}
+
+  .play-btn{
+    margin-top:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    border:none;border-radius:12px;padding:15px 28px;font-size:1rem;font-weight:600;
+    cursor:pointer;font-family:inherit;letter-spacing:.01em;width:100%;
+    transition:opacity .15s,transform .1s;
+  }
+  .play-btn:hover{opacity:.92;}
+  .play-btn:active{transform:translateY(1px);}
+  .play-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* setup options as toggle rows */
+  #setup .opts{text-align:left;}
+  .toggle-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 0;}
+  .toggle-row + .toggle-row{border-top:1px solid var(--border);}
+  .toggle-label{font-size:.88rem;color:var(--text);line-height:1.35;flex:1;font-weight:500;}
+  .toggle-label small{display:block;color:var(--text-muted);font-size:.76rem;margin-top:3px;font-weight:400;line-height:1.35;}
+  .toggle{position:relative;width:42px;height:24px;flex-shrink:0;margin-top:2px;}
+  .toggle input{opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .slider{position:absolute;inset:0;background:var(--border);border-radius:12px;transition:background .2s;pointer-events:none;}
+  .slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;}
+  .toggle input:checked + .slider{background:var(--accent);}
+  .toggle input:checked + .slider:before{transform:translateX(18px);}
+
+  .divider{height:1px;background:var(--border);margin:6px 0 20px;}
+  .note{color:var(--text-muted);font-size:.78rem;line-height:1.5;text-align:center;margin-top:18px;}
+  .note b{color:var(--accent);font-weight:600;}
+
+  /* ---------- game layout ---------- */
+  #game{
+    display:flex;width:100%;max-width:940px;gap:20px;
+    align-items:flex-start;justify-content:center;flex-wrap:wrap;
+  }
+
+  /* board column */
+  #board-wrap{flex:1 1 380px;display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0;}
+  #progress-wrap{width:100%;max-width:560px;background:var(--surface2);border-radius:4px;height:5px;overflow:hidden;}
+  #progress-bar{height:100%;width:0%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s ease;}
+
+  #board{
+    display:grid;gap:0;width:100%;max-width:min(92vw,560px);aspect-ratio:1/1;
+    border:2px solid var(--border);border-radius:10px;overflow:hidden;
+    box-shadow:0 8px 40px rgba(0,0,0,.5);touch-action:none;
+  }
+  .cell{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;border:1px solid rgba(0,0,0,.18);transition:filter .12s;
+    container-type:size;
+  }
+  .cell:active{filter:brightness(1.18);}
+  .cell.queen{filter:brightness(1.1);}
+
+  /* marks centred; size set per-mark below */
+  .cell .mark{
+    position:absolute;top:50%;left:50%;
+    pointer-events:none;z-index:2;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cell .mark svg{width:100%;height:100%;display:block;}
+
+  /* crown fills 80% of the cell */
+  .cell .q{width:80%;height:80%;opacity:0;transition:opacity .22s cubic-bezier(.34,1.56,.64,1),transform .22s cubic-bezier(.34,1.56,.64,1);transform:translate(-50%,-50%) scale(.3) rotate(-20deg);}
+  .cell.queen .q{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0);}
+  .cell .q svg{filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));}
+
+  /* cross fills 50% of the cell; identical for user and auto crosses */
+  .cell .x{width:50%;height:50%;opacity:0;transition:opacity .12s,transform .12s;transform:translate(-50%,-50%) scale(.4);}
+  .cell.cross .x{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .cell .x svg line{stroke:#5a5a5a;stroke-width:16;stroke-linecap:round;opacity:1;}
+
+  .cell.blocked-shade::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.42);pointer-events:none;}
+  .cell.bad{animation:bad 1.4s ease;}
+  @keyframes bad{0%,100%{box-shadow:inset 0 0 0 0 rgba(240,92,92,0);}30%,70%{box-shadow:inset 0 0 0 3px var(--danger);}}
+
+  /* a queen that conflicts with another: persistent red highlight + pulsing glow */
+  .cell.conflict{animation:conflictPulse 1s ease infinite;z-index:4;}
+  @keyframes conflictPulse{
+    0%,100%{box-shadow:inset 0 0 0 3px var(--danger), 0 0 0 0 rgba(240,92,92,.5);}
+    50%{box-shadow:inset 0 0 0 4px var(--danger), 0 0 10px 2px rgba(240,92,92,.7);}
+  }
+  .cell.conflict .q svg{filter:drop-shadow(0 0 4px var(--danger));}
+
+  /* hint highlights: queen hints pulse in the accent colour, cross hints in amber */
+  .cell.hint-queen{animation:hintQueen 1s ease infinite;}
+  .cell.hint-cross{animation:hintCross 1s ease infinite;}
+  @keyframes hintQueen{0%,100%{filter:brightness(1);box-shadow:inset 0 0 0 0 rgba(124,111,224,0);}50%{filter:brightness(1.45);box-shadow:inset 0 0 0 4px var(--accent);}}
+  @keyframes hintCross{0%,100%{filter:brightness(1);box-shadow:inset 0 0 0 0 rgba(240,180,41,0);}50%{filter:brightness(1.45);box-shadow:inset 0 0 0 4px var(--warn);}}
+  /* ghost guide symbol shown inside a highlighted empty cell so the action is unmistakable */
+  .cell.hint-queen::before,.cell.hint-cross::before{
+    content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:3;pointer-events:none;font-weight:700;line-height:1;
+  }
+  .cell.hint-queen::before{content:"♛";color:var(--accent);font-size:55cqmin;text-shadow:0 1px 2px rgba(0,0,0,.5);}
+  .cell.hint-cross:not(.cross)::before{content:"✕";color:var(--warn);font-size:42cqmin;font-weight:800;}
+
+
+  .mode-indicator{font-size:.75rem;color:var(--text-muted);text-align:center;line-height:1.5;}
+
+  /* side controls panel */
+  #controls{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:20px;flex:0 0 240px;width:240px;
+  }
+  #controls h3{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;}
+  .status{font-size:.85rem;color:var(--text-muted);line-height:1.4;min-height:1.2em;margin-bottom:14px;}
+  .status.err{color:var(--danger);font-weight:600;}
+  .status.good{color:var(--success);font-weight:600;}
+
+  .stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .stat-label{font-size:.8rem;color:var(--text-muted);}
+  .stat-val{font-size:.85rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;}
+
+  .btn-row{
+    width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);
+    border-radius:10px;padding:11px 14px;font-size:.85rem;font-weight:500;cursor:pointer;
+    font-family:inherit;transition:all .15s;text-align:left;display:flex;align-items:center;gap:9px;
+    margin-bottom:8px;
+  }
+  .btn-row .ico{font-size:1rem;width:18px;text-align:center;}
+  .btn-row:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-row:active{transform:scale(.98);}
+  .btn-row.accent{border-color:rgba(124,111,224,.4);color:var(--accent);}
+  .btn-row.accent:hover{background:rgba(124,111,224,.08);}
+  .btn-row.danger{color:var(--danger);border-color:rgba(240,92,92,.3);background:transparent;}
+  .btn-row.danger:hover{background:rgba(240,92,92,.08);}
+  .btn-row[style*="none"]{display:none;}
+
+  .hint-count{font-size:.74rem;color:var(--text-muted);margin:2px 0 4px 2px;}
+
+  /* button groups: transparent on desktop (keep the column layout) */
+  .mobile-actions,.mobile-secondary{display:contents;}
+
+  /* hint explanation box */
+  .hintbox{
+    background:rgba(124,111,224,.1);border:1px solid rgba(124,111,224,.35);
+    border-radius:10px;padding:11px 13px;font-size:.82rem;line-height:1.45;
+    color:#cfc8f5;margin-top:4px;display:none;
+  }
+  .hintbox.show{display:block;animation:fadein .25s ease;}
+  .hintbox b{color:var(--accent2);}
+  @keyframes fadein{from{opacity:0;transform:translateY(-3px);}to{opacity:1;transform:none;}}
+  .hint-tag{
+    display:inline-block;font-weight:700;font-size:.82rem;
+    padding:5px 10px;border-radius:8px;margin-bottom:8px;
+  }
+  .hint-tag.queen{background:rgba(124,111,224,.22);color:#cfc8f5;border:1px solid rgba(124,111,224,.5);}
+  .hint-tag.cross{background:rgba(240,180,41,.18);color:#f5d98a;border:1px solid rgba(240,180,41,.5);}
+
+  .hidden{display:none !important;}
+
+  /* ---------- win overlay ---------- */
+  .overlay{
+    display:none;position:fixed;inset:0;z-index:100;
+    background:rgba(15,15,19,.88);backdrop-filter:blur(10px);
+    align-items:center;justify-content:center;padding:24px;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--surface);border:1px solid var(--border);border-radius:24px;
+    padding:40px 32px 32px;text-align:center;max-width:380px;width:100%;
+    animation:pop .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop{from{opacity:0;transform:scale(.85) translateY(10px);}to{opacity:1;transform:none;}}
+  .medal{font-size:3.6rem;line-height:1;margin-bottom:14px;animation:crownPop .4s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes crownPop{from{transform:scale(.3) rotate(-20deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+  .modal h2{
+    font-size:1.8rem;font-weight:700;margin-bottom:6px;
+    background:linear-gradient(135deg,var(--success),var(--accent));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .modal p{color:var(--text-muted);font-size:.92rem;}
+  .modal .time{margin:22px 0 6px;display:flex;align-items:baseline;justify-content:center;gap:8px;}
+  .modal .time .big{font-size:2.8rem;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
+  .modal .time .lab{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);}
+  .modal .meta{font-size:.8rem;color:var(--text-muted);margin-bottom:26px;}
+  .modal-actions{display:flex;flex-direction:column;gap:10px;}
+  .m-btn{border:none;cursor:pointer;border-radius:12px;padding:14px;font-size:.95rem;font-weight:600;font-family:inherit;transition:opacity .15s,transform .1s;}
+  .m-btn:active{transform:scale(.98);}
+  .m-btn.primary{color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+  .m-btn.primary:hover{opacity:.92;}
+  .m-btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+  .m-btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* ---------- responsive: phones in portrait ---------- */
+  @media(max-width:760px){
+    body{padding:max(10px,env(safe-area-inset-top)) 10px calc(env(safe-area-inset-bottom) + 10px);}
+
+    /* compact header */
+    header{margin-bottom:10px;}
+    header h1{font-size:2rem;}
+    .logo-h{font-size:1.4rem;}
+    .logo-crown{font-size:.95rem;margin-bottom:2px;}
+    header .subtitle{font-size:.74rem;margin-top:3px;}
+
+    /* single-column game that fits the viewport height */
+    #game{flex-direction:column;align-items:center;gap:10px;}
+    #board-wrap{order:1;width:100%;flex:0 0 auto;gap:8px;}
+    #progress-wrap{order:0;}
+    /* board fills the full width, but never taller than the space we reserve
+       for header + controls (so everything fits with no scroll) */
+    #board{width:min(100%, 66vh);max-width:100%;margin:0 auto;}
+    .mode-indicator{display:none;}            /* free vertical space; gestures are in the panel */
+
+    #controls{
+      order:2;flex:0 0 auto;width:100%;max-width:560px;
+      padding:12px;border-radius:14px;
+    }
+    #controls h3{display:none;}
+    .status{font-size:.78rem;margin-bottom:10px;}
+    /* stats + actions packed; no inner dividers eating space */
+    #controls .divider{display:none;}
+    #controls .hint-count{display:none;}
+    #controls .stats-inline{
+      display:flex;gap:14px;justify-content:space-between;align-items:center;margin-bottom:10px;
+    }
+    #controls .stats-inline .stat-row{flex:0 0 auto;margin-bottom:0;gap:6px;}
+
+    /* turn the action buttons into a compact icon row, prioritising the key three */
+    #btnHint,#btnUndo,#btnClear{
+      width:auto;flex:1 1 0;margin-bottom:0;justify-content:center;
+      flex-direction:column;gap:3px;padding:10px 4px;font-size:.72rem;text-align:center;
+    }
+    #btnHint .ico,#btnUndo .ico,#btnClear .ico{font-size:1.15rem;width:auto;}
+    .mobile-actions{display:flex;gap:8px;width:100%;}
+    /* secondary buttons: smaller row below */
+    .mobile-secondary{display:flex;gap:8px;width:100%;margin-top:8px;}
+    #btnNew,#btnMenu{flex:1 1 0;justify-content:center;padding:9px 12px;font-size:.8rem;margin-bottom:0;}
+  }
+
+  /* very short viewports: cap board height so controls always fit */
+  @media(max-width:760px) and (max-height:740px){
+    #board{width:min(100%, 52vh);}
+    header .subtitle{display:none;}
+    header{margin-bottom:6px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <span class="logo-crown">♛</span>
+      <span class="logo-h">H</span>
+    </span>
+    <h1>Queens</h1>
+  </div>
+  <p class="subtitle">Una corona por fila, columna y región de color · sin que se toquen</p>
+</header>
+
+<!-- SETUP -->
+<section id="setup">
+  <div class="block">
+    <p class="eyebrow">Nueva partida</p>
+    <div class="sizes" id="sizes"></div>
+  </div>
+  <div class="block">
+    <p class="eyebrow">Ayudas</p>
+    <div class="opts">
+      <div class="toggle-row">
+        <span class="toggle-label">Sombrear casillas bloqueadas
+          <small>Oscurece las celdas que una corona inutiliza.</small>
+        </span>
+        <label class="toggle"><input type="checkbox" id="optShade"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Cruces automáticas
+          <small>Marca con ✕ las casillas que una corona bloquea.</small>
+        </span>
+        <label class="toggle"><input type="checkbox" id="optAutoX" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Pistas
+          <small>Permite pedir ayuda cuando te atasques.</small>
+        </span>
+        <label class="toggle"><input type="checkbox" id="optHints" checked><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+  <button class="play-btn" id="playBtn" disabled>Generando…</button>
+  <p class="note">Cada color forma <b>una sola región conectada</b>. Cada tablero tiene <b>una única solución</b>.</p>
+</section>
+
+<!-- GAME -->
+<section id="game" class="hidden">
+  <div id="board-wrap">
+    <div id="progress-wrap"><div id="progress-bar"></div></div>
+    <div id="board"></div>
+    <p class="mode-indicator">Toca: vacía → ✕ → ♛ → vacía · Doble toque: ♛ directo · Arrastra para poner o borrar ✕.</p>
+  </div>
+
+  <aside id="controls">
+    <h3>Partida</h3>
+    <div class="status" id="status">Una corona por fila, columna y color. Sin tocarse.</div>
+
+    <div class="stats-inline">
+      <div class="stat-row"><span class="stat-label">Coronas</span><span class="stat-val" id="statQueens">0 / 0</span></div>
+      <div class="stat-row"><span class="stat-label">Tiempo</span><span class="stat-val" id="timer">0:00</span></div>
+    </div>
+
+    <div class="divider" style="margin:16px 0;"></div>
+
+    <div class="mobile-actions">
+      <button class="btn-row accent" id="btnHint"><span class="ico">💡</span>Pedir pista</button>
+      <button class="btn-row" id="btnUndo"><span class="ico">↩</span>Deshacer</button>
+      <button class="btn-row" id="btnClear"><span class="ico">🧹</span>Limpiar tablero</button>
+    </div>
+    <div class="hint-count" id="hintCount">Pistas usadas: 0</div>
+    <div id="hintbox" class="hintbox"></div>
+
+    <div class="divider" style="margin:16px 0;"></div>
+
+    <div class="mobile-secondary">
+      <button class="btn-row" id="btnNew"><span class="ico">🎲</span>Nuevo tablero</button>
+      <button class="btn-row danger" id="btnMenu"><span class="ico">⚙</span>Cambiar tamaño</button>
+    </div>
+  </aside>
+</section>
+
+<!-- WIN MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="medal">👑</div>
+    <h2>¡Resuelto!</h2>
+    <p>Has colocado todas las coronas correctamente.</p>
+    <div class="time">
+      <span class="big" id="modalTime">0:00</span>
+      <span class="lab">min</span>
+    </div>
+    <p class="meta" id="modalMeta"></p>
+    <div class="modal-actions">
+      <button class="m-btn primary" id="btnPlayAgain">Nueva partida</button>
+      <button class="m-btn ghost" id="btnViewSolved">Ver tablero resuelto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =======================================================================
+   GENERADOR DE TABLEROS (solución única, regiones conectadas)
+   ======================================================================= */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function genQueens(n){
+  for(let attempt=0; attempt<4000; attempt++){
+    const q=new Array(n).fill(-1);
+    const place=(r)=>{
+      if(r===n) return true;
+      for(const c of shuffle([...Array(n).keys()])){
+        let used=false;
+        for(let rr=0; rr<r; rr++) if(q[rr]===c){used=true;break;}
+        if(used) continue;
+        if(r>0 && Math.abs(q[r-1]-c)<=1) continue;
+        q[r]=c; if(place(r+1)) return true; q[r]=-1;
+      }
+      return false;
+    };
+    if(place(0)) return q;
+  }
+  return null;
+}
+function genRegions(n, queens){
+  const color=Array.from({length:n},()=>new Array(n).fill(-1));
+  for(let id=0;id<n;id++) color[id][queens[id]]=id;
+  const dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+  let remaining=n*n-n;
+  while(remaining>0){
+    const opts=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+      if(color[r][c]!==-1) continue;
+      const ns=new Set();
+      for(const[dr,dc]of dirs){const nr=r+dr,nc=c+dc;if(nr<0||nc<0||nr>=n||nc>=n)continue;if(color[nr][nc]!==-1)ns.add(color[nr][nc]);}
+      if(ns.size) opts.push([r,c,[...ns]]);
+    }
+    if(!opts.length) break;
+    const [r,c,ns]=opts[Math.floor(Math.random()*opts.length)];
+    color[r][c]=ns[Math.floor(Math.random()*ns.length)];
+    remaining--;
+  }
+  if(remaining>0) return null;
+  return color;
+}
+function solutions(n,color,cap=2){
+  const out=[];const qcol=new Int32Array(n);
+  const rec=(r,colMask,regMask)=>{
+    if(out.length>=cap)return;
+    if(r===n){out.push(qcol.slice());return;}
+    const prev=r>0?qcol[r-1]:-99;
+    for(let c=0;c<n;c++){
+      const cb=1<<c; if(colMask&cb)continue;
+      if(prev!==-99&&Math.abs(prev-c)<=1)continue;
+      const reg=color[r][c];const rb=1<<reg; if(regMask&rb)continue;
+      qcol[r]=c; rec(r+1,colMask|cb,regMask|rb); if(out.length>=cap)return;
+    }
+  };
+  rec(0,0,0); return out;
+}
+function connected(n,color,id){
+  let start=null,cnt=0;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(color[r][c]===id){cnt++;if(!start)start=[r,c];}
+  if(!cnt) return false;
+  const seen=new Uint8Array(n*n);seen[start[0]*n+start[1]]=1;const st=[start];let v=0;
+  const dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+  while(st.length){const[r,c]=st.pop();v++;for(const[dr,dc]of dirs){const nr=r+dr,nc=c+dc;if(nr<0||nc<0||nr>=n||nc>=n)continue;const k=nr*n+nc;if(color[nr][nc]===id&&!seen[k]){seen[k]=1;st.push([nr,nc]);}}}
+  return v===cnt;
+}
+function refine(n,color,queens){
+  for(let iter=0;iter<3000;iter++){
+    const sols=solutions(n,color,2);
+    if(sols.length<2) return sols.length===1;
+    const intended=s=>{for(let r=0;r<n;r++)if(s[r]!==queens[r])return false;return true;};
+    const alt=intended(sols[0])?sols[1]:sols[0];
+    const cells=[];
+    for(let r=0;r<n;r++){ if(alt[r]!==queens[r]) cells.push([r,alt[r]]); }
+    shuffle(cells);
+    let done=false;
+    for(const [r,c] of cells){
+      const id=color[r][c];
+      if(r===id && c===queens[id]) continue;
+      const dirs=shuffle([[0,1],[0,-1],[1,0],[-1,0]]);
+      for(const[dr,dc]of dirs){
+        const nr=r+dr,nc=c+dc;if(nr<0||nc<0||nr>=n||nc>=n)continue;
+        const nid=color[nr][nc]; if(nid===id)continue;
+        color[r][c]=nid;
+        if(connected(n,color,id)&&connected(n,color,nid)){ done=true; break; }
+        color[r][c]=id;
+      }
+      if(done) break;
+    }
+    if(!done) return false;
+  }
+  return solutions(n,color,2).length===1;
+}
+function generateBoard(n){
+  for(let attempt=0; attempt<600; attempt++){
+    const queens=genQueens(n); if(!queens) continue;
+    const color=genRegions(n,queens); if(!color) continue;
+    if(refine(n,color,queens)){
+      let ok=true; for(let r=0;r<n;r++) if(color[r][queens[r]]!==r){ok=false;break;}
+      if(ok){ const s=solutions(n,color,1); if(s.length===1) return {color, solution:s[0]}; }
+    }
+  }
+  return null;
+}
+
+/* =======================================================================
+   PALETA DE COLORES PARA LAS REGIONES
+   ======================================================================= */
+const PALETTE=[
+  "#e57373","#64b5f6","#81c784","#ffd54f","#ba68c8",
+  "#4db6ac","#ff8a65","#a1887f","#90a4ae","#f06292",
+  "#9575cd","#aed581","#4dd0e1","#fff176"
+];
+
+/* =======================================================================
+   ESTADO DEL JUEGO
+   ======================================================================= */
+const S={
+  n:0, color:null, solution:null,
+  state:null,      // 'empty' | 'cross' | 'queen' per cell
+  cells:[],        // DOM refs
+  history:[],      // for undo (deep snapshots)
+  opts:{shade:false, autoX:true, hints:true},
+  startTime:0, timerId:null, finished:false,
+  hintCells:[],    // currently highlighted hint cells
+};
+
+/* ---------- SETUP UI ---------- */
+let chosenSize=null;
+const sizesEl=document.getElementById('sizes');
+const playBtn=document.getElementById('playBtn');
+[4,5,6,7,8,9,10].forEach(sz=>{
+  const b=document.createElement('button');
+  b.className='size-btn'; b.textContent=sz; b.dataset.size=sz;
+  b.addEventListener('click',()=>{
+    chosenSize=sz;
+    document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    playBtn.disabled=false; playBtn.textContent=`Jugar ${sz} × ${sz}`;
+  });
+  sizesEl.appendChild(b);
+});
+// default selection
+setTimeout(()=>{ sizesEl.querySelector('[data-size="7"]').click(); },0);
+
+const optShade=document.getElementById('optShade');
+const optAutoX=document.getElementById('optAutoX');
+const optHints=document.getElementById('optHints');
+
+playBtn.addEventListener('click',()=>{
+  if(!chosenSize) return;
+  S.opts.shade=optShade.checked;
+  S.opts.autoX=optAutoX.checked;
+  S.opts.hints=optHints.checked;
+  startGame(chosenSize);
+});
+
+/* ---------- DOM refs ---------- */
+const setupEl=document.getElementById('setup');
+const gameEl=document.getElementById('game');
+const boardEl=document.getElementById('board');
+const statusEl=document.getElementById('status');
+const timerEl=document.getElementById('timer');
+const hintBox=document.getElementById('hintbox');
+const btnHint=document.getElementById('btnHint');
+
+document.getElementById('btnMenu').addEventListener('click',()=>{
+  stopTimer();
+  gameEl.classList.add('hidden'); setupEl.classList.remove('hidden');
+});
+document.getElementById('btnNew').addEventListener('click',()=> startGame(S.n));
+document.getElementById('btnClear').addEventListener('click',clearMarks);
+document.getElementById('btnUndo').addEventListener('click',undo);
+btnHint.addEventListener('click',giveHint);
+
+document.getElementById('btnPlayAgain').addEventListener('click',()=>{
+  document.getElementById('overlay').classList.remove('show');
+  gameEl.classList.add('hidden'); setupEl.classList.remove('hidden');
+});
+document.getElementById('btnViewSolved').addEventListener('click',()=>{
+  document.getElementById('overlay').classList.remove('show');
+  revealSolution();
+});
+
+function revealSolution(){
+  const n=S.n, sol=S.solution;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    S.state[r][c] = (sol[r]===c) ? 'queen' : 'empty';
+    S.cells[r][c].classList.remove('bad','conflict','hint-cross','hint-queen','blocked-shade');
+    renderCell(r,c);
+  }
+  clearHint();
+  statusEl.textContent='Solución del tablero.'; statusEl.className='status good';
+}
+
+/* =======================================================================
+   INICIO DE PARTIDA
+   ======================================================================= */
+function startGame(n){
+  document.getElementById('overlay').classList.remove('show');
+  statusEl.textContent='Generando tablero…'; statusEl.className='status';
+  setupEl.classList.add('hidden'); gameEl.classList.remove('hidden');
+  // generate async-ish so UI can paint
+  setTimeout(()=>{
+    const board=generateBoard(n);
+    if(!board){ statusEl.textContent='No se pudo generar, prueba otro tamaño.'; return; }
+    S.n=n; S.color=board.color; S.solution=board.solution;
+    S.state=Array.from({length:n},()=>new Array(n).fill('empty'));
+    S.history=[]; S.finished=false; S.hintCells=[];
+    S.auto=new Set(); S.hintsUsed=0; S.lastElapsed=null;
+    buildBoard();
+    clearHint();
+    statusEl.textContent='Una corona por fila, columna y color. Sin tocarse.';
+    statusEl.className='status';
+    startTimer();
+    btnHint.style.display = S.opts.hints ? '' : 'none';
+  },30);
+}
+
+function buildBoard(){
+  const n=S.n;
+  boardEl.innerHTML='';
+  boardEl.style.gridTemplateColumns=`repeat(${n},1fr)`;
+  boardEl.style.fontSize='';
+  S.cells=Array.from({length:n},()=>new Array(n));
+  // cross: two diagonal strokes filling the 100x100 viewBox
+  const X_SVG='<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">'+
+    '<line x1="14" y1="14" x2="86" y2="86"/><line x1="86" y1="14" x2="14" y2="86"/></svg>';
+  // crown: white ♛-style silhouette centred and filling its viewBox
+  const Q_SVG='<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">'+
+    '<g fill="#ffffff">'+
+    '<path d="M12 34 L26 78 L74 78 L88 34 L68 52 L50 22 L32 52 Z"/>'+
+    '<rect x="24" y="80" width="52" height="13" rx="3"/>'+
+    '<circle cx="12" cy="32" r="7"/><circle cx="50" cy="18" r="7"/><circle cx="88" cy="32" r="7"/>'+
+    '</g></svg>';
+  for(let r=0;r<n;r++){
+    for(let c=0;c<n;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      cell.style.background=PALETTE[S.color[r][c]%PALETTE.length];
+      cell.dataset.r=r; cell.dataset.c=c;
+      const x=document.createElement('span'); x.className='mark x'; x.innerHTML=X_SVG;
+      const q=document.createElement('span'); q.className='mark q'; q.innerHTML=Q_SVG;
+      cell.appendChild(x); cell.appendChild(q);
+      boardEl.appendChild(cell);
+      S.cells[r][c]=cell;
+    }
+  }
+  attachPointer();
+}
+
+/* =======================================================================
+   INTERACCIÓN: tap / doble-tap / drag
+   ======================================================================= */
+let drag={active:false, mode:null, moved:false, startCell:null, painted:null, lastTapCell:null, lastTapTime:0, pointerId:null};
+
+function attachPointer(){
+  // Bind board-level handlers once; rebuilding the board reuses the same #board node.
+  if(attachPointer._bound) return;
+  attachPointer._bound=true;
+  boardEl.addEventListener('pointerdown',onDown);
+  // move and up listen on window so the gesture is tracked even off the board
+  window.addEventListener('pointermove',onMove);
+  window.addEventListener('pointerup',onUp);
+  window.addEventListener('pointercancel',onUp);
+  // if the pointer capture is lost (e.g. leaving the window), end the gesture cleanly
+  boardEl.addEventListener('lostpointercapture',onUp);
+}
+function cellFromPoint(x,y){
+  const el=document.elementFromPoint(x,y);
+  if(!el) return null;
+  const cell=el.closest('.cell');
+  if(!cell || !boardEl.contains(cell)) return null;
+  return cell;
+}
+function onDown(e){
+  if(S.finished) return;
+  const cell=e.target.closest('.cell'); if(!cell) return;
+  e.preventDefault();
+  clearHint();
+  drag.active=true; drag.moved=false; drag.startCell=cell;
+  drag.pointerId=e.pointerId;
+  // capture the pointer so we always receive its up event, even outside the board
+  try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+  drag.painted=new Set();
+  const r=+cell.dataset.r, c=+cell.dataset.c;
+  // mode based on starting cell's state
+  const st=S.state[r][c];
+  if(st==='empty'){ drag.mode='paintX'; }
+  else if(st==='cross'){ drag.mode='eraseX'; }
+  else { drag.mode='queenStart'; } // started on a queen — single tap will clear it
+}
+function applyDragTo(r,c){
+  const key=r+'-'+c;
+  if(drag.painted.has(key)) return;
+  drag.painted.add(key);
+  if(drag.mode==='paintX' || drag.mode==='queenStart'){
+    if(S.state[r][c]==='empty'){ snapshotMaybe(); setState(r,c,'cross',false); }
+  } else if(drag.mode==='eraseX'){
+    if(S.state[r][c]==='cross'){ snapshotMaybe(); setState(r,c,'empty',false); }
+  }
+}
+function onMove(e){
+  if(!drag.active) return;
+  if(drag.pointerId!=null && e.pointerId!==drag.pointerId) return;
+  const cell=cellFromPoint(e.clientX,e.clientY);
+  // Off the board: don't paint, just wait. Painting resumes only on cells we pass over.
+  if(!cell) return;
+  if(cell!==drag.startCell && !drag.moved){
+    // movement just began → also act on the START cell so the drag includes it
+    drag.moved=true;
+    const sr=+drag.startCell.dataset.r, sc=+drag.startCell.dataset.c;
+    applyDragTo(sr,sc);
+  }
+  if(!drag.moved) return;
+  const r=+cell.dataset.r, c=+cell.dataset.c;
+  applyDragTo(r,c);
+}
+function onUp(e){
+  if(!drag.active) return;
+  if(e && e.pointerId!=null && drag.pointerId!=null && e.pointerId!==drag.pointerId) return;
+  const wasDrag=drag.moved;
+  const cell=drag.startCell;
+  drag.active=false;
+  try{ if(drag.pointerId!=null) boardEl.releasePointerCapture(drag.pointerId); }catch(_){}
+  drag.pointerId=null;
+  if(!cell) return;
+  if(wasDrag){
+    finalizeChange();
+    return;
+  }
+  // ---- it was a TAP (no movement) ----
+  const r=+cell.dataset.r, c=+cell.dataset.c;
+  const now=Date.now();
+  const isDouble = drag.lastTapCell===cell && (now-drag.lastTapTime)<300;
+
+  const st=S.state[r][c];
+  snapshot();
+  if(isDouble){
+    // Second click of a double: act on the state the cell had BEFORE the first
+    // click of this double (the first click already mutated it once).
+    const before = drag.lastTapPrevState;
+    if(before==='empty' || before==null){
+      // double click on an empty cell → place a queen directly
+      setState(r,c,'queen',true);
+    } else {
+      // double click on a crossed cell or a queen → clear it
+      setState(r,c,'empty',true);
+    }
+    // reset so a following click starts a fresh tap (no triple-chaining)
+    drag.lastTapCell=null; drag.lastTapPrevState=null; drag.lastTapTime=0;
+  } else {
+    // remember what this cell looked like before we change it, for a possible double
+    drag.lastTapPrevState=st;
+    if(st==='empty'){
+      setState(r,c,'cross',true);
+    } else if(st==='cross'){
+      setState(r,c,'queen',true);
+    } else { // queen
+      setState(r,c,'empty',true);
+    }
+    drag.lastTapCell=cell; drag.lastTapTime=now;
+  }
+  finalizeChange();
+}
+
+/* =======================================================================
+   CAMBIO DE ESTADO + AUTO-CRUCES + SOMBREADO
+   ======================================================================= */
+function setState(r,c,val,single){
+  S.state[r][c]=val;
+  renderCell(r,c);
+}
+function renderCell(r,c){
+  const cell=S.cells[r][c];
+  const st=S.state[r][c];
+  cell.classList.toggle('cross', st==='cross');
+  cell.classList.toggle('queen', st==='queen');
+  // distinguish auto-placed crosses (faint) from user crosses (bold), like the original
+  const isAuto = st==='cross' && S.auto && S.auto.has(r+'-'+c);
+  cell.classList.toggle('auto', isAuto);
+}
+
+// After any user-initiated change settles, recompute auto-crosses + shading + win check.
+function finalizeChange(){
+  applyAutoMarks();
+  refreshShade();
+  checkErrorsLive();
+  checkWin();
+}
+
+// Auto-cross: cells blocked by queens get ✕ (only if option on). We track which
+// crosses are "auto" so we can recompute cleanly without erasing user crosses.
+function applyAutoMarks(){
+  const n=S.n;
+  // First, remove auto crosses that are no longer justified, keep user crosses & queens.
+  // Strategy: store autoCross set on S.
+  if(!S.auto) S.auto=new Set();
+  if(!S.opts.autoX){
+    // option off: clear any auto crosses we previously added
+    for(const key of S.auto){
+      const [r,c]=key.split('-').map(Number);
+      if(S.state[r][c]==='cross'){ S.state[r][c]='empty'; renderCell(r,c); }
+    }
+    S.auto.clear();
+    return;
+  }
+  // compute blocked cells from current queens
+  const blocked=new Set();
+  const queens=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') queens.push([r,c]);
+  for(const [qr,qc] of queens){
+    for(let k=0;k<n;k++){ blocked.add(qr+'-'+k); blocked.add(k+'-'+qc); }
+    for(const [dr,dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+      const nr=qr+dr,nc=qc+dc; if(nr>=0&&nc>=0&&nr<n&&nc<n) blocked.add(nr+'-'+nc);
+    }
+    // same color region
+    const id=S.color[qr][qc];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id) blocked.add(r+'-'+c);
+  }
+  // remove previous auto crosses not blocked anymore
+  for(const key of [...S.auto]){
+    const [r,c]=key.split('-').map(Number);
+    if(!blocked.has(key)){
+      if(S.state[r][c]==='cross'){ S.state[r][c]='empty'; renderCell(r,c); }
+      S.auto.delete(key);
+    }
+  }
+  // add auto crosses for blocked empty cells
+  for(const key of blocked){
+    const [r,c]=key.split('-').map(Number);
+    if(S.state[r][c]==='empty'){ S.state[r][c]='cross'; S.auto.add(key); renderCell(r,c); }
+  }
+}
+
+function refreshShade(){
+  const n=S.n;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) S.cells[r][c].classList.remove('blocked-shade');
+  if(!S.opts.shade) return;
+  const blocked=new Set();
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(S.state[r][c]!=='queen') continue;
+    for(let k=0;k<n;k++){ blocked.add(r+'-'+k); blocked.add(k+'-'+c); }
+    for(const [dr,dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+      const nr=r+dr,nc=c+dc; if(nr>=0&&nc>=0&&nr<n&&nc<n) blocked.add(nr+'-'+nc);
+    }
+    const id=S.color[r][c];
+    for(let rr=0;rr<n;rr++)for(let cc=0;cc<n;cc++) if(S.color[rr][cc]===id) blocked.add(rr+'-'+cc);
+  }
+  for(const key of blocked){
+    const [r,c]=key.split('-').map(Number);
+    if(S.state[r][c]!=='queen') S.cells[r][c].classList.add('blocked-shade');
+  }
+}
+
+/* live error indication: highlight any queens that conflict with another,
+   so the player notices the mistake immediately without asking for a hint */
+function checkErrorsLive(){
+  const n=S.n;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) S.cells[r][c].classList.remove('bad','conflict');
+  const qs=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') qs.push([r,c]);
+  const conflict=new Set();
+  const reasons=new Set();
+  for(let i=0;i<qs.length;i++)for(let j=i+1;j<qs.length;j++){
+    const [r1,c1]=qs[i],[r2,c2]=qs[j];
+    let bad=false;
+    if(r1===r2){ reasons.add('fila'); bad=true; }
+    if(c1===c2){ reasons.add('columna'); bad=true; }
+    if(S.color[r1][c1]===S.color[r2][c2]){ reasons.add('color'); bad=true; }
+    if(Math.abs(r1-r2)<=1 && Math.abs(c1-c2)<=1){ reasons.add('contacto'); bad=true; }
+    if(bad){ conflict.add(i); conflict.add(j); }
+  }
+  for(const i of conflict){ const [r,c]=qs[i]; S.cells[r][c].classList.add('conflict'); }
+  if(conflict.size){
+    // build a short, specific reason for the status line
+    const parts=[];
+    if(reasons.has('fila')) parts.push('en la misma fila');
+    if(reasons.has('columna')) parts.push('en la misma columna');
+    if(reasons.has('color')) parts.push('en el mismo color');
+    if(reasons.has('contacto')) parts.push('tocándose');
+    statusEl.textContent = `⚠ Coronas en conflicto: hay dos ${parts.join(' o ')}.`;
+    statusEl.className='status err';
+  } else if(!S.finished){
+    const placed=qs.length;
+    statusEl.textContent=`Coronas colocadas: ${placed} / ${n}`;
+    statusEl.className='status';
+  }
+}
+
+/* =======================================================================
+   VICTORIA
+   ======================================================================= */
+function checkWin(){
+  const n=S.n;
+  const qs=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') qs.push([r,c]);
+  if(qs.length!==n) return;
+  // validate
+  const cols=new Set(),regs=new Set(),rows=new Set();
+  for(const [r,c] of qs){rows.add(r);cols.add(c);regs.add(S.color[r][c]);}
+  if(rows.size!==n||cols.size!==n||regs.size!==n) return;
+  for(let i=0;i<qs.length;i++)for(let j=i+1;j<qs.length;j++){
+    const [r1,c1]=qs[i],[r2,c2]=qs[j];
+    if(Math.abs(r1-r2)<=1&&Math.abs(c1-c2)<=1) return;
+  }
+  // win!
+  S.finished=true; stopTimer();
+  statusEl.textContent='¡Resuelto!';
+  statusEl.className='status good';
+  clearHint();
+  showWinModal();
+}
+
+function showWinModal(){
+  const elapsed=Math.floor((S.lastElapsed!=null?S.lastElapsed:(Date.now()-S.startTime))/1000);
+  const m=Math.floor(elapsed/60), s=elapsed%60;
+  document.getElementById('modalTime').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  let meta=`Tablero ${S.n} × ${S.n}`;
+  if(S.hintsUsed>0) meta+=` · ${S.hintsUsed} pista${S.hintsUsed>1?'s':''}`;
+  document.getElementById('modalMeta').textContent=meta;
+  document.getElementById('overlay').classList.add('show');
+}
+
+/* =======================================================================
+   HISTORIAL / DESHACER / LIMPIAR
+   ======================================================================= */
+function snapshot(){
+  S.history.push({
+    state:S.state.map(row=>row.slice()),
+    auto:S.auto?new Set(S.auto):new Set()
+  });
+  if(S.history.length>200) S.history.shift();
+}
+let snapGuard=false;
+function snapshotMaybe(){ // for drag: snapshot once at start of a drag-paint run
+  if(!snapGuard){ snapshot(); snapGuard=true; }
+}
+function undo(){
+  if(S.finished) return;
+  if(!S.history.length){ flashStatus('Nada que deshacer.'); return; }
+  const snap=S.history.pop();
+  S.state=snap.state.map(row=>row.slice());
+  S.auto=new Set(snap.auto);
+  renderAll();
+  refreshShade(); checkErrorsLive(); clearHint();
+}
+function clearMarks(){
+  if(S.finished) return;
+  snapshot();
+  const n=S.n;
+  S.state=Array.from({length:n},()=>new Array(n).fill('empty'));
+  S.auto=new Set();
+  renderAll(); refreshShade(); checkErrorsLive(); clearHint();
+  statusEl.textContent='Tablero limpio.'; statusEl.className='status';
+}
+function renderAll(){
+  const n=S.n;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) renderCell(r,c);
+}
+// reset drag snapshot guard after each pointer interaction
+window.addEventListener('pointerup',()=>{ snapGuard=false; });
+
+/* =======================================================================
+   MOTOR DE PISTAS (deductivo, prioriza corregir errores)
+   =======================================================================
+   1. Si hay coronas mal colocadas (contradicen la solución única o entran
+      en conflicto), señalarlas primero.
+   2. Si no, buscar una deducción lógica: una celda que DEBE llevar cruz, o
+      una región/fila/columna que solo deja una casilla para la corona.
+*/
+function clearHint(){
+  for(const [r,c] of S.hintCells){
+    S.cells[r][c].classList.remove('hint-cross','hint-queen');
+  }
+  S.hintCells=[];
+  hintBox.classList.remove('show'); hintBox.innerHTML='';
+}
+function showHint(cells, html, queen=false){
+  clearHint();
+  S.hintCells=cells.slice();
+  for(const [r,c] of cells){
+    S.cells[r][c].classList.add(queen?'hint-queen':'hint-cross');
+  }
+  // Prefix a clear, colour-coded banner so it's unmistakable what to place.
+  // (Skipped when there are no highlighted cells, e.g. the "no hint" message.)
+  let banner='';
+  if(cells.length){
+    banner = queen
+      ? `<div class="hint-tag queen">👑 Coloca una corona en la casilla resaltada</div>`
+      : `<div class="hint-tag cross">✕ Marca con una cruz ${cells.length>1?'las casillas resaltadas':'la casilla resaltada'}</div>`;
+  }
+  hintBox.innerHTML=banner+html;
+  hintBox.classList.add('show');
+}
+
+function giveHint(){
+  if(S.finished) return;
+  if(!S.opts.hints) return;
+  S.hintsUsed=(S.hintsUsed||0)+1;
+  const n=S.n, sol=S.solution;
+
+  // --- Step 1: detect wrong queens (queen where solution has none) ---
+  const wrong=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(S.state[r][c]==='queen' && sol[r]!==c) wrong.push([r,c]);
+  }
+  if(wrong.length){
+    showHint(wrong,
+      `<b>Antes de avanzar:</b> ${wrong.length>1?'estas coronas están':'esta corona está'} mal colocada${wrong.length>1?'s':''}. `+
+      `Quítala${wrong.length>1?'s':''} para poder seguir resolviendo el tablero.`, true);
+    return;
+  }
+  // --- also: a user cross on a cell that the solution needs as a queen is an error ---
+  const wrongCross=[];
+  for(let r=0;r<n;r++){
+    const c=sol[r];
+    if(S.state[r][c]==='cross' && !(S.auto&&S.auto.has(r+'-'+c))){
+      wrongCross.push([r,c]);
+    }
+  }
+  if(wrongCross.length){
+    showHint(wrongCross,
+      `<b>Antes de avanzar:</b> ${wrongCross.length>1?'estas casillas llevan':'esta casilla lleva'} una cruz `+
+      `pero ${wrongCross.length>1?'sí van a contener corona':'sí va a contener corona'}. Bórrala${wrongCross.length>1?'s':''}.`,
+      true);
+    return;
+  }
+
+  // --- Step 2: logical deductions from CURRENT marks (queens + crosses) ---
+  // Build "blocked" = cells that cannot hold a queen given current queens & crosses.
+  const blocked=computeBlocked();
+
+  // 2a. A region/row/column with exactly one available cell → place queen there.
+  const forced=findForcedQueen(blocked);
+  if(forced){
+    showHint([[forced.r,forced.c]], forced.msg, true);
+    return;
+  }
+
+  // 2b. A cell that can be eliminated by logic but isn't crossed yet → cross it.
+  const elim=findEliminableCell(blocked);
+  if(elim){
+    // safety: never suggest crossing a cell that actually holds a queen in the solution
+    const safeCells=elim.cells.filter(([r,c])=>sol[r]!==c);
+    if(safeCells.length){
+      showHint(safeCells, elim.msg, false);
+      return;
+    }
+  }
+
+  // 2c. Elimination justified by a queen the player has already placed
+  //     (same row / column / colour, or diagonal contact). Always explained.
+  const qElim=findQueenBasedElimination(blocked);
+  if(qElim){
+    const safe=qElim.cells.filter(([r,c])=>sol[r]!==c);
+    if(safe.length){
+      showHint(safe, qElim.msg, false);
+      return;
+    }
+  }
+
+  // 2d. A forced queen even if it required all current crosses (explain the unit)
+  for(let r=0;r<n;r++){
+    if(rowHasQueen(r)) continue;
+    const free=[];
+    for(let c=0;c<n;c++) if(!blocked[r][c]) free.push(c);
+    if(free.length===1 && sol[r]===free[0]){
+      showHint([[r,free[0]]],
+        `Cuenta las casillas libres de esta fila: solo queda una sin descartar, así que <b>la corona tiene que ir ahí</b>.`, true);
+      return;
+    }
+  }
+
+  // 2e. No single-step deduction is available from the current marks.
+  showHint([], `Pista no disponible actualmente, busca más a fondo ;)`, false);
+}
+
+/* current cells that cannot hold a queen, based on user's queens + crosses */
+function computeBlocked(){
+  const n=S.n;
+  const blocked=Array.from({length:n},()=>new Array(n).fill(false));
+  // crosses block (both user and auto)
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='cross') blocked[r][c]=true;
+  // queens block their lines/diagonals/region & themselves are occupied
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(S.state[r][c]!=='queen') continue;
+    blocked[r][c]=true;
+    for(let k=0;k<n;k++){ blocked[r][k]=true; blocked[k][c]=true; }
+    for(const [dr,dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+      const nr=r+dr,nc=c+dc; if(nr>=0&&nc>=0&&nr<n&&nc<n) blocked[nr][nc]=true;
+    }
+    const id=S.color[r][c];
+    for(let rr=0;rr<n;rr++)for(let cc=0;cc<n;cc++) if(S.color[rr][cc]===id) blocked[rr][cc]=true;
+  }
+  return blocked;
+}
+function regionHasQueen(id){
+  const n=S.n;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id && S.state[r][c]==='queen') return true;
+  return false;
+}
+function rowHasQueen(r){ for(let c=0;c<S.n;c++) if(S.state[r][c]==='queen') return true; return false; }
+function colHasQueen(c){ for(let r=0;r<S.n;r++) if(S.state[r][c]==='queen') return true; return false; }
+
+/* Find a forced queen: a row, column, or region with exactly one non-blocked cell. */
+function findForcedQueen(blocked){
+  const n=S.n, sol=S.solution;
+  // A forced cell is only offered if it agrees with the unique solution — a true
+  // single-candidate deduction always will; this guard just prevents ever pointing
+  // the player somewhere wrong if their own marks created a false constraint.
+  const agrees=(r,c)=> sol[r]===c;
+  // regions
+  for(let id=0;id<n;id++){
+    if(regionHasQueen(id)) continue;
+    const free=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id && !blocked[r][c]) free.push([r,c]);
+    if(free.length===1 && agrees(free[0][0],free[0][1])) return {r:free[0][0],c:free[0][1],
+      msg:`A este color solo le queda una casilla libre (la resaltada), así que <b>ahí va su corona</b>.`};
+  }
+  // rows
+  for(let r=0;r<n;r++){
+    if(rowHasQueen(r)) continue;
+    const free=[];
+    for(let c=0;c<n;c++) if(!blocked[r][c]) free.push([r,c]);
+    if(free.length===1 && agrees(free[0][0],free[0][1])) return {r:free[0][0],c:free[0][1],
+      msg:`En esta fila solo queda una casilla libre: <b>ahí va la corona</b>.`};
+  }
+  // columns
+  for(let c=0;c<n;c++){
+    if(colHasQueen(c)) continue;
+    const free=[];
+    for(let r=0;r<n;r++) if(!blocked[r][c]) free.push([r,c]);
+    if(free.length===1 && agrees(free[0][0],free[0][1])) return {r:free[0][0],c:free[0][1],
+      msg:`En esta columna solo queda una casilla libre: <b>ahí va la corona</b>.`};
+  }
+  return null;
+}
+
+/* Find cells that can be logically eliminated (crossed) but aren't crossed yet.
+   We look for clean, explainable patterns:
+   - A region confined to a single row or single column ⇒ that row/col is used by
+     the region, so other cells of that row/col elsewhere can be crossed.
+   We only suggest cells that are also crosses in the true solution (safe + correct).
+*/
+function findEliminableCell(blocked){
+  const n=S.n, sol=S.solution;
+
+  // Pattern A: region fully contained in one row → cross the rest of that row.
+  for(let id=0;id<n;id++){
+    if(regionHasQueen(id)) continue;
+    const rows=new Set(), cols=new Set(), free=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id && !blocked[r][c]){ rows.add(r); cols.add(c); free.push([r,c]); }
+    if(free.length<2) continue;
+    if(rows.size===1){
+      const r=[...rows][0];
+      const targets=[];
+      for(let c=0;c<n;c++) if(S.color[r][c]!==id && !blocked[r][c] && S.state[r][c]==='empty' && sol[r]!==c) targets.push([r,c]);
+      if(targets.length) return {cells:targets,
+        msg:`Hay un color que solo tiene casillas libres en esta fila, así que su corona ocupará esta fila. Por eso, las casillas resaltadas (que son de otros colores) no pueden llevar corona.`};
+    }
+    if(cols.size===1){
+      const c=[...cols][0];
+      const targets=[];
+      for(let r=0;r<n;r++) if(S.color[r][c]!==id && !blocked[r][c] && S.state[r][c]==='empty' && sol[r]!==c) targets.push([r,c]);
+      if(targets.length) return {cells:targets,
+        msg:`Hay un color que solo tiene casillas libres en esta columna, así que su corona ocupará esta columna. Por eso, las casillas resaltadas (que son de otros colores) no pueden llevar corona.`};
+    }
+  }
+
+  // Pattern B: in some row, all free cells share a single region → that region's
+  // queen is in this row, so cross that region's cells in OTHER rows.
+  for(let r=0;r<n;r++){
+    if(rowHasQueen(r)) continue;
+    const free=[];
+    for(let c=0;c<n;c++) if(!blocked[r][c]) free.push(c);
+    if(free.length<1) continue;
+    const ids=new Set(free.map(c=>S.color[r][c]));
+    if(ids.size===1 && !regionHasQueen([...ids][0])){
+      const id=[...ids][0];
+      const targets=[];
+      for(let rr=0;rr<n;rr++){ if(rr===r) continue;
+        for(let cc=0;cc<n;cc++) if(S.color[rr][cc]===id && !blocked[rr][cc] && S.state[rr][cc]==='empty' && sol[rr]!==cc) targets.push([rr,cc]);
+      }
+      if(targets.length) return {cells:targets,
+        msg:`Todas las casillas libres de una fila son del mismo color, así que la corona de ese color tiene que estar en esa fila. Por eso, las casillas resaltadas (de ese mismo color, pero en otras filas) no pueden llevar corona.`};
+    }
+  }
+
+  // Pattern C: same as B but by column.
+  for(let c=0;c<n;c++){
+    if(colHasQueen(c)) continue;
+    const free=[];
+    for(let r=0;r<n;r++) if(!blocked[r][c]) free.push(r);
+    if(free.length<1) continue;
+    const ids=new Set(free.map(r=>S.color[r][c]));
+    if(ids.size===1 && !regionHasQueen([...ids][0])){
+      const id=[...ids][0];
+      const targets=[];
+      for(let cc=0;cc<n;cc++){ if(cc===c) continue;
+        for(let rr=0;rr<n;rr++) if(S.color[rr][cc]===id && !blocked[rr][cc] && S.state[rr][cc]==='empty' && sol[rr]!==cc) targets.push([rr,cc]);
+      }
+      if(targets.length) return {cells:targets,
+        msg:`Todas las casillas libres de una columna son del mismo color, así que la corona de ese color tiene que estar en esa columna. Por eso, las casillas resaltadas (de ese mismo color, pero en otras columnas) no pueden llevar corona.`};
+    }
+  }
+
+  return null;
+}
+
+/* Explainable elimination based on a queen already placed by the player:
+   a still-empty cell can be crossed because it shares a row / column / colour
+   region with a queen, or it touches one diagonally. Returns the cells plus a
+   message naming the exact reason, so the hint teaches the rule. */
+function findQueenBasedElimination(blocked){
+  const n=S.n, sol=S.solution;
+  const queens=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') queens.push([r,c]);
+  if(!queens.length) return null;
+
+  // gather candidate empty cells (never a real solution-queen cell) grouped by reason
+  const byReason={row:[],col:[],region:[],touch:[]};
+  for(const [qr,qc] of queens){
+    const qid=S.color[qr][qc];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+      if(S.state[r][c]!=='empty') continue;
+      if(sol[r]===c) continue; // safety: that cell holds a queen in the solution
+      if(r===qr && c===qc) continue;
+      if(r===qr){ byReason.row.push([r,c]); }
+      else if(c===qc){ byReason.col.push([r,c]); }
+      else if(S.color[r][c]===qid){ byReason.region.push([r,c]); }
+      else if(Math.abs(r-qr)<=1 && Math.abs(c-qc)<=1){ byReason.touch.push([r,c]); }
+    }
+  }
+  const uniq=arr=>{const s=new Set(),o=[];for(const [r,c] of arr){const k=r+'-'+c;if(!s.has(k)){s.add(k);o.push([r,c]);}}return o;};
+  if(byReason.row.length) return {cells:uniq(byReason.row),
+    msg:`Ya hay una corona en esta fila, y solo puede haber <b>una corona por fila</b>. Las demás casillas de la fila quedan descartadas: márcalas con una cruz.`};
+  if(byReason.col.length) return {cells:uniq(byReason.col),
+    msg:`Ya hay una corona en esta columna, y solo puede haber <b>una corona por columna</b>. El resto de la columna queda descartado.`};
+  if(byReason.region.length) return {cells:uniq(byReason.region),
+    msg:`Ya hay una corona de este color, y cada color admite <b>una sola corona</b>. Las otras casillas del mismo color se descartan.`};
+  if(byReason.touch.length) return {cells:uniq(byReason.touch),
+    msg:`Esta casilla toca una corona ya colocada, y <b>dos coronas no pueden tocarse</b> (ni en diagonal). Por eso se descarta.`};
+  return null;
+}
+
+
+/* =======================================================================
+   TEMPORIZADOR
+   ======================================================================= */
+function startTimer(){
+  stopTimer(); S.startTime=Date.now();
+  timerEl.textContent='0:00';
+  S.timerId=setInterval(()=>{
+    const s=Math.floor((Date.now()-S.startTime)/1000);
+    const m=Math.floor(s/60);
+    timerEl.textContent=`${m}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+}
+function stopTimer(){ if(S.timerId){clearInterval(S.timerId);S.timerId=null;} S.lastElapsed=Date.now()-S.startTime; }
+
+/* =======================================================================
+   UTIL
+   ======================================================================= */
+let flashTO=null;
+function flashStatus(txt){
+  const prev=statusEl.textContent, prevCls=statusEl.className;
+  statusEl.textContent=txt;
+  clearTimeout(flashTO);
+  flashTO=setTimeout(()=>{ if(!S.finished){ statusEl.textContent=prev; statusEl.className=prevCls; } },1800);
+}
+
+/* =======================================================================
+   CAPA DE PRESENTACIÓN — sincroniza elementos visuales del nuevo estilo
+   (progreso, estadísticas, contador de pistas). No altera la lógica.
+   ======================================================================= */
+(function(){
+  const $=id=>document.getElementById(id);
+  function syncStats(){
+    const n=S.n||0; let q=0;
+    if(S.state) for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') q++;
+    const sq=$('statQueens'); if(sq) sq.textContent=`${q} / ${n}`;
+    const pb=$('progress-bar'); if(pb) pb.style.width = n?`${(q/n)*100}%`:'0%';
+    const hc=$('hintCount'); if(hc) hc.textContent=`Pistas usadas: ${S.hintsUsed||0}`;
+  }
+  // Light polling keeps the visuals in sync with state without touching game logic.
+  setInterval(syncStats, 250);
+  // Also sync immediately after any pointer or button interaction.
+  document.addEventListener('pointerup', ()=>setTimeout(syncStats,0), true);
+  document.addEventListener('click', ()=>setTimeout(syncStats,0), true);
+})();
+</script>
+</body>
+</html>
