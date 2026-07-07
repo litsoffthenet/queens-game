@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0F0F13">
+<title>Queens</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  :root{
+    --bg:#0F0F13;
+    --surface:#1A1A22;
+    --surface2:#22222E;
+    --border:#2E2E3E;
+    --text:#E8E8F0;
+    --text-muted:#7878A0;
+    --accent:#7C6FE0;
+    --accent2:#E06FAA;
+    --success:#5DDC8E;
+    --warn:#F0B429;
+    --danger:#F05C5C;
+    --hint:#7C6FE0;
+    --hint-text:#cfc8f5;
+    --hint-text-cross:#f5d98a;
+    font-size:16px;
+  }
+  body.light-mode{
+    --bg:#F4F4F8;
+    --surface:#FFFFFF;
+    --surface2:#EAEAF0;
+    --border:#D0D0E0;
+    --text:#1A1A2E;
+    --text-muted:#6060A0;
+    --accent:#6255C8;
+    --accent2:#C84090;
+    --success:#25A85A;
+    --warn:#D09010;
+    --danger:#D03030;
+    --hint:#6255C8;
+    --hint-text:var(--text);
+    --hint-text-cross:var(--text);
+  }
+  body, body *{ transition: background-color .25s, color .25s, border-color .25s; }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{min-height:100%;}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg);color:var(--text);
+    min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+    padding:max(20px,env(safe-area-inset-top)) 16px calc(env(safe-area-inset-bottom) + 24px);
+    -webkit-user-select:none;user-select:none;overflow-x:hidden;
+  }
+
+  /* ---------- header ---------- */
+  header{text-align:center;margin-bottom:24px;width:100%;max-width:420px;}
+  .header-row{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:6px;}
+  .header-title{display:flex;align-items:stretch;gap:12px;justify-content:center;}
+  .setup-toggles{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);
+  }
+  .toggle-group{display:flex;gap:6px;}
+  .hdr-btn{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    color:var(--text-muted);font-size:.75rem;font-weight:600;padding:5px 9px;
+    cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;
+  }
+  .hdr-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .hdr-btn.active{border-color:var(--accent);background:rgba(124,111,224,.14);color:var(--accent);}
+  .theme-btn{font-size:1rem;padding:5px 8px;}
+  .brand{display:inline-flex;align-items:stretch;gap:12px;justify-content:center;}
+  /* logo: a crown resting slightly above a letter H */
+  .logo{position:relative;display:inline-flex;flex-direction:column;align-items:center;line-height:1;}
+  .logo-crown{
+    font-size:1.25rem;line-height:1;margin-bottom:3px;color:var(--accent);
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  }
+  .logo-h{
+    font-size:2rem;font-weight:800;line-height:.85;letter-spacing:-.02em;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  /* "Queens" matches the full height of the crown+H logo */
+  header h1{
+    font-size:2.85rem;font-weight:700;letter-spacing:-.04em;line-height:1;
+    display:flex;align-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  header .subtitle{color:var(--text-muted);font-size:.85rem;margin-top:8px;letter-spacing:.02em;text-align:center;}
+
+  /* ---------- setup ---------- */
+  #setup{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:32px 28px;width:100%;max-width:420px;text-align:center;
+    display:flex;flex-direction:column;gap:0;
+  }
+  #setup .block{margin-bottom:24px;}
+  #setup .block:last-of-type{margin-bottom:0;}
+  #setup h2{font-size:1.1rem;font-weight:600;margin-bottom:18px;}
+  .eyebrow{
+    font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--text-muted);margin-bottom:14px;text-align:left;
+  }
+  .sizes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .size-btn{
+    width:52px;height:52px;border-radius:12px;border:2px solid var(--border);
+    background:var(--surface2);color:var(--text);font-size:1.1rem;font-weight:600;
+    cursor:pointer;transition:all .15s;font-family:inherit;
+  }
+  .size-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .size-btn:active{transform:scale(.93);}
+  .size-btn.sel{border-color:var(--accent);background:rgba(124,111,224,.16);color:var(--accent);}
+
+  .play-btn{
+    margin-top:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    border:none;border-radius:12px;padding:15px 28px;font-size:1rem;font-weight:600;
+    cursor:pointer;font-family:inherit;letter-spacing:.01em;width:100%;
+    transition:opacity .15s,transform .1s;
+  }
+  .play-btn:hover{opacity:.92;}
+  .play-btn:active{transform:translateY(1px);}
+  .play-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* setup options as toggle rows */
+  #setup .opts{text-align:left;}
+  .toggle-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 0;}
+  .toggle-row + .toggle-row{border-top:1px solid var(--border);}
+  .toggle-label{font-size:.88rem;color:var(--text);line-height:1.35;flex:1;font-weight:500;}
+  .toggle-label small{display:block;color:var(--text-muted);font-size:.76rem;margin-top:3px;font-weight:400;line-height:1.35;}
+  .toggle{position:relative;width:42px;height:24px;flex-shrink:0;margin-top:2px;}
+  .toggle input{opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .slider{position:absolute;inset:0;background:var(--border);border-radius:12px;transition:background .2s;pointer-events:none;}
+  .slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;}
+  .toggle input:checked + .slider{background:var(--accent);}
+  .toggle input:checked + .slider:before{transform:translateX(18px);}
+
+  .divider{height:1px;background:var(--border);margin:6px 0 20px;}
+  .note{color:var(--text-muted);font-size:.78rem;line-height:1.5;text-align:center;margin-top:18px;}
+  .note b{color:var(--accent);font-weight:600;}
+  .dedication{
+    text-align:center;margin-top:14px;
+    font-size:.82rem;font-style:italic;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    opacity:.85;letter-spacing:.01em;
+  }
+
+  /* ---------- game layout ---------- */
+  #game{
+    display:flex;width:100%;max-width:940px;gap:20px;
+    align-items:flex-start;justify-content:center;flex-wrap:wrap;
+  }
+
+  /* board column */
+  #board-wrap{flex:1 1 380px;display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0;}
+  #progress-wrap{width:100%;max-width:560px;background:var(--surface2);border-radius:4px;height:5px;overflow:hidden;}
+  #progress-bar{height:100%;width:0%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s ease;}
+
+  #board{
+    display:grid;gap:0;width:100%;max-width:min(92vw,560px);aspect-ratio:1/1;
+    border:2px solid #000;border-radius:10px;overflow:hidden;
+    box-shadow:0 8px 40px rgba(0,0,0,.5);touch-action:none;
+  }
+  .cell{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;border:0.5px solid #000;transition:filter .12s;
+    container-type:size;
+  }
+  .cell:active{filter:brightness(1.18);}
+  .cell.queen{filter:brightness(1.1);}
+
+  /* marks centred; size set per-mark below */
+  .cell .mark{
+    position:absolute;top:50%;left:50%;
+    pointer-events:none;z-index:2;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cell .mark svg{width:100%;height:100%;display:block;}
+
+  /* crown fills 68% of the cell (80% − 15%), golden with black outline */
+  .cell .q{width:68%;height:68%;opacity:0;transition:opacity .22s cubic-bezier(.34,1.56,.64,1),transform .22s cubic-bezier(.34,1.56,.64,1);transform:translate(-50%,-50%) scale(.3) rotate(-20deg);}
+  .cell.queen .q{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0);}
+  .cell .q svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));}
+
+  /* cross fills 30% of the cell */
+  .cell .x{width:30%;height:30%;opacity:0;transition:opacity .12s,transform .12s;transform:translate(-50%,-50%) scale(.4);}
+  .cell.cross .x{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .cell .x svg line{stroke:#444;stroke-width:18;stroke-linecap:round;opacity:1;}
+
+  .cell.blocked-shade::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.42);pointer-events:none;}
+  .cell.bad{animation:bad 1.4s ease;}
+  @keyframes bad{0%,100%{box-shadow:inset 0 0 0 0 rgba(240,92,92,0);}30%,70%{box-shadow:inset 0 0 0 3px var(--danger);}}
+
+  /* a queen that conflicts with another: persistent red highlight + pulsing glow */
+  .cell.conflict{animation:conflictPulse 1s ease infinite;z-index:4;}
+  @keyframes conflictPulse{
+    0%,100%{box-shadow:inset 0 0 0 3px var(--danger), 0 0 0 0 rgba(240,92,92,.5);}
+    50%{box-shadow:inset 0 0 0 4px var(--danger), 0 0 10px 2px rgba(240,92,92,.7);}
+  }
+  .cell.conflict .q svg{filter:drop-shadow(0 0 4px var(--danger));}
+
+  /* hint highlights: queen hints pulse white↔gold, cross hints pulse white↔black */
+  .cell.hint-queen{animation:hintQueen .9s ease infinite;}
+  .cell.hint-cross{animation:hintCross .9s ease infinite;}
+  @keyframes hintQueen{
+    0%,100%{box-shadow:inset 0 0 0 3px #fff;}
+    50%{box-shadow:inset 0 0 0 3px #F0C040;filter:brightness(1.25);}
+  }
+  @keyframes hintCross{
+    0%,100%{box-shadow:inset 0 0 0 3px #fff;}
+    50%{box-shadow:inset 0 0 0 3px #111;filter:brightness(.85);}
+  }
+  /* ghost guide symbol inside hint cells */
+  .cell.hint-queen::before,.cell.hint-cross::before{
+    content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:3;pointer-events:none;font-weight:700;line-height:1;
+  }
+  /* hint-queen ghost: SVG injected via JS — fill animates white↔gold */
+  .cell .hint-q-ghost{
+    position:absolute;top:50%;left:50%;
+    width:68%;height:68%;
+    transform:translate(-50%,-50%);
+    pointer-events:none;z-index:3;
+  }
+  .cell .hint-q-ghost svg{width:100%;height:100%;display:block;}
+  /* animate the SVG fill between white and gold; stroke stays black */
+  .cell .hint-q-ghost svg path,
+  .cell .hint-q-ghost svg rect,
+  .cell .hint-q-ghost svg circle{
+    animation:ghostFill .9s ease infinite;
+    stroke:#000;
+  }
+  @keyframes ghostFill{
+    0%,100%{fill:#ffffff;}
+    50%{fill:#F0C040;}
+  }
+  /* cross ghost stays ::before */
+  .cell.hint-cross:not(.cross)::before{content:"✕";animation:ghostCross .9s ease infinite;font-size:35cqmin;font-weight:800;}
+  @keyframes ghostCross{0%,100%{color:#fff;}50%{color:#111;}}
+  /* victim row/col in contradiction hints: subtle blue tint */
+  .cell.hint-victim{animation:hintVictim 1s ease infinite;}
+  @keyframes hintVictim{0%,100%{filter:brightness(.9);box-shadow:inset 0 0 0 0 rgba(90,170,255,0);}50%{filter:brightness(.85);box-shadow:inset 0 0 0 2px rgba(90,170,255,.7);}}
+
+
+  .mode-indicator{font-size:.75rem;color:var(--text-muted);text-align:center;line-height:1.5;}
+
+  /* side controls panel */
+  #controls{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:20px;flex:0 0 240px;width:240px;
+  }
+  #controls h3{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;}
+  .status{font-size:.85rem;color:var(--text-muted);line-height:1.4;min-height:1.2em;margin-bottom:14px;}
+  .status.err{color:var(--danger);font-weight:600;}
+  .status.good{color:var(--success);font-weight:600;}
+
+  .stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .stat-label{font-size:.8rem;color:var(--text-muted);}
+  .stat-val{font-size:.85rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;}
+
+  .btn-row{
+    width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);
+    border-radius:10px;padding:11px 14px;font-size:.85rem;font-weight:500;cursor:pointer;
+    font-family:inherit;transition:all .15s;text-align:left;display:flex;align-items:center;gap:9px;
+    margin-bottom:8px;
+  }
+  .btn-row .ico{font-size:1rem;width:18px;text-align:center;}
+  .btn-row:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-row:active{transform:scale(.98);}
+  .btn-row.accent{border-color:rgba(124,111,224,.4);color:var(--accent);}
+  .btn-row.accent:hover{background:rgba(124,111,224,.08);}
+  .btn-row.danger{color:var(--danger);border-color:rgba(240,92,92,.3);background:transparent;}
+  .btn-row.danger:hover{background:rgba(240,92,92,.08);}
+  .btn-row[style*="none"]{display:none;}
+
+  .hint-count{font-size:.74rem;color:var(--text-muted);margin:2px 0 4px 2px;}
+
+  /* button groups: transparent on desktop (keep the column layout) */
+  .mobile-actions,.mobile-secondary{display:contents;}
+
+  /* hint explanation box */
+  .hintbox{
+    background:rgba(124,111,224,.1);border:1px solid rgba(124,111,224,.35);
+    border-radius:10px;padding:11px 13px;font-size:.82rem;line-height:1.45;
+    color:var(--hint-text);margin-top:4px;display:none;
+  }
+  .hintbox.show{display:block;animation:fadein .25s ease;}
+  .hintbox b{color:var(--accent2);}
+  @keyframes fadein{from{opacity:0;transform:translateY(-3px);}to{opacity:1;transform:none;}}
+  .hint-btns{display:flex;gap:8px;margin-top:10px;margin-bottom:8px;}
+  .hint-show-btn{
+    flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    border:none;border-radius:8px;padding:8px 14px;
+    font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;
+    transition:opacity .15s,transform .1s;
+  }
+  .hint-show-btn:hover{opacity:.9;}
+  .hint-show-btn:active{transform:scale(.97);}
+  .hint-show-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+  .hint-show-btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+  .hint-tag{
+    display:inline-block;font-weight:700;font-size:.82rem;
+    padding:5px 10px;border-radius:8px;margin-bottom:8px;
+  }
+  .hint-tag.queen{background:rgba(124,111,224,.22);color:var(--hint-text);border:1px solid rgba(124,111,224,.5);}
+  .hint-tag.cross{background:rgba(240,180,41,.18);color:var(--hint-text-cross);border:1px solid rgba(240,180,41,.5);}
+
+  .hidden{display:none !important;}
+
+  /* ---------- win overlay ---------- */
+  .overlay{
+    display:none;position:fixed;inset:0;z-index:100;
+    background:rgba(15,15,19,.88);backdrop-filter:blur(10px);
+    align-items:center;justify-content:center;padding:24px;
+  }
+  .overlay.show{display:flex;}
+  #confirmOverlay{z-index:200;}
+  .modal{
+    background:var(--surface);border:1px solid var(--border);border-radius:24px;
+    padding:40px 32px 32px;text-align:center;max-width:380px;width:100%;
+    animation:pop .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop{from{opacity:0;transform:scale(.85) translateY(10px);}to{opacity:1;transform:none;}}
+  .medal{font-size:3.6rem;line-height:1;margin-bottom:14px;animation:crownPop .4s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes crownPop{from{transform:scale(.3) rotate(-20deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+  .modal h2{
+    font-size:1.8rem;font-weight:700;margin-bottom:6px;
+    background:linear-gradient(135deg,var(--success),var(--accent));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .modal p{color:var(--text-muted);font-size:.92rem;}
+  .modal .time{margin:22px 0 6px;display:flex;align-items:baseline;justify-content:center;gap:8px;}
+  .modal .time .big{font-size:2.8rem;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
+  .modal .time .lab{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);}
+  .modal .meta{font-size:.8rem;color:var(--text-muted);margin-bottom:26px;}
+  .modal-actions{display:flex;flex-direction:column;gap:10px;}
+  .m-btn{border:none;cursor:pointer;border-radius:12px;padding:14px;font-size:.95rem;font-weight:600;font-family:inherit;transition:opacity .15s,transform .1s;}
+  .m-btn:active{transform:scale(.98);}
+  .m-btn.primary{color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+  .m-btn.primary:hover{opacity:.92;}
+  .m-btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+  .m-btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* ---------- responsive: phones in portrait ---------- */
+  @media(max-width:760px){
+    body{padding:max(10px,env(safe-area-inset-top)) 10px calc(env(safe-area-inset-bottom) + 10px);}
+
+    /* compact header */
+    header{margin-bottom:10px;}
+    header h1{font-size:2rem;}
+    .logo-h{font-size:1.4rem;}
+    .logo-crown{font-size:.95rem;margin-bottom:2px;}
+    header .subtitle{font-size:.74rem;margin-top:3px;}
+
+    /* single-column game that fits the viewport height */
+    #game{flex-direction:column;align-items:center;gap:10px;}
+    #board-wrap{order:1;width:100%;flex:0 0 auto;gap:8px;}
+    #progress-wrap{order:0;}
+    /* board fills the full width, but never taller than the space we reserve
+       for header + controls (so everything fits with no scroll) */
+    #board{width:min(100%, 66vh);max-width:100%;margin:0 auto;}
+    .mode-indicator{display:none;}            /* free vertical space; gestures are in the panel */
+
+    #controls{
+      order:2;flex:0 0 auto;width:100%;max-width:560px;
+      padding:12px;border-radius:14px;
+    }
+    #controls h3{display:none;}
+    .status{font-size:.78rem;margin-bottom:10px;}
+    /* stats + actions packed; no inner dividers eating space */
+    #controls .divider{display:none;}
+    #controls .hint-count{display:none;}
+    #controls .stats-inline{
+      display:flex;gap:14px;justify-content:space-between;align-items:center;margin-bottom:10px;
+    }
+    #controls .stats-inline .stat-row{flex:0 0 auto;margin-bottom:0;gap:6px;}
+
+    /* turn Pista+Deshacer into compact icon row */
+    #btnHint,#btnUndo{
+      width:auto;flex:1 1 0;margin-bottom:0;justify-content:center;
+      flex-direction:column;gap:3px;padding:10px 4px;font-size:.72rem;text-align:center;
+    }
+    #btnHint .ico,#btnUndo .ico{font-size:1.15rem;width:auto;}
+    .mobile-actions{display:flex;gap:8px;width:100%;}
+    /* secondary: 3 buttons in a row */
+    .mobile-secondary{display:flex;gap:8px;width:100%;margin-top:8px;flex-wrap:wrap;}
+    #btnNew,#btnMenu,#btnClear{flex:1 1 0;justify-content:center;padding:9px 8px;font-size:.78rem;margin-bottom:0;min-width:0;}
+  }
+
+  /* very short viewports: cap board height so controls always fit */
+  @media(max-width:760px) and (max-height:740px){
+    #board{width:min(100%, 52vh);}
+    header .subtitle{display:none;}
+    header{margin-bottom:6px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="header-title">
+      <span class="logo" aria-hidden="true">
+        <span class="logo-crown">♛</span>
+        <span class="logo-h">H</span>
+      </span>
+      <h1>Queens</h1>
+    </div>
+  </div>
+  <p class="subtitle" data-es="Una corona por fila, columna y región de color · sin que se toquen" data-en="One crown per row, column and color region · without touching">Una corona por fila, columna y región de color · sin que se toquen</p>
+</header>
+
+<!-- SETUP -->
+<section id="setup">
+  <div class="setup-toggles">
+    <div class="toggle-group">
+      <button class="hdr-btn theme-btn active" id="btnDark">🌙</button>
+      <button class="hdr-btn theme-btn" id="btnLight">☀️</button>
+    </div>
+    <div class="toggle-group">
+      <button class="hdr-btn lang-btn active" id="btnEs">ES</button>
+      <button class="hdr-btn lang-btn" id="btnEn">EN</button>
+    </div>
+  </div>
+  <div class="block">
+    <p class="eyebrow" data-es="Nueva partida" data-en="New game">Nueva partida</p>
+    <div class="sizes" id="sizes"></div>
+  </div>
+  <div class="block">
+    <p class="eyebrow" data-es="Ayudas" data-en="Helpers">Ayudas</p>
+    <div class="opts">
+      <div class="toggle-row">
+        <span class="toggle-label"><span data-es="Cruces automáticas" data-en="Auto crosses">Cruces automáticas</span>
+          <small data-es="Marca con ✕ las casillas que una corona bloquea." data-en="Marks with ✕ the cells a crown blocks.">Marca con ✕ las casillas que una corona bloquea.</small>
+        </span>
+        <label class="toggle"><input type="checkbox" id="optAutoX" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label"><span data-es="Pistas" data-en="Hints">Pistas</span>
+          <small data-es="Permite pedir ayuda cuando te atasques." data-en="Lets you ask for help when you get stuck.">Permite pedir ayuda cuando te atasques.</small>
+        </span>
+        <label class="toggle"><input type="checkbox" id="optHints" checked><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+  <button class="play-btn" id="playBtn" disabled data-es="Generando…" data-en="Generating…">Generando…</button>
+  <button class="play-btn" id="btnMultiplayer" style="margin-top:10px;background:var(--surface2);color:var(--text);border:1px solid var(--border);" data-es="🎮 Multijugador" data-en="🎮 Multiplayer">🎮 Multijugador</button>
+  <p class="note" data-es="Cada color forma <b>una sola región conectada</b>. Cada tablero tiene <b>una única solución</b>." data-en="Each color forms <b>one connected region</b>. Each board has <b>exactly one solution</b>.">Cada color forma <b>una sola región conectada</b>. Cada tablero tiene <b>una única solución</b>.</p>
+</section>
+
+<p id="dedication" class="dedication">♛ This Queens game is dedicated to my real queen. ♛</p>
+
+<!-- GAME -->
+<section id="game" class="hidden">
+  <div id="board-wrap">
+    <div id="progress-wrap"><div id="progress-bar"></div></div>
+    <div id="board"></div>
+    <p class="mode-indicator" data-es="Toca: vacía → ✕ → ♛ → vacía · Doble toque: ♛ directo · Arrastra para poner o borrar ✕." data-en="Tap: empty → ✕ → ♛ → empty · Double tap: ♛ directly · Drag to place or remove ✕.">Toca: vacía → ✕ → ♛ → vacía · Doble toque: ♛ directo · Arrastra para poner o borrar ✕.</p>
+  </div>
+
+  <aside id="controls">
+    <h3 data-es="Partida" data-en="Game">Partida</h3>
+    <div class="status" id="status" data-es="Una corona por fila, columna y color. Sin tocarse." data-en="One crown per row, column and color. Without touching.">Una corona por fila, columna y color. Sin tocarse.</div>
+    <div class="status" id="mpGameInfo" style="display:none;margin-top:-6px;margin-bottom:14px;font-size:.78rem;"></div>
+
+    <div class="stats-inline">
+      <div class="stat-row"><span class="stat-label" data-es="Coronas" data-en="Crowns">Coronas</span><span class="stat-val" id="statQueens">0 / 0</span></div>
+      <div class="stat-row"><span class="stat-label" data-es="Tiempo" data-en="Time">Tiempo</span><span class="stat-val" id="timer">0:00</span></div>
+    </div>
+
+    <div class="divider" style="margin:16px 0;"></div>
+
+    <div class="mobile-actions">
+      <button class="btn-row accent" id="btnHint"><span class="ico">💡</span><span data-es="Pedir pista" data-en="Get hint">Pedir pista</span></button>
+      <button class="btn-row" id="btnUndo"><span class="ico">↩</span><span data-es="Deshacer" data-en="Undo">Deshacer</span></button>
+    </div>
+    <div class="hint-count" id="hintCount" data-es="Pistas usadas: 0" data-en="Hints used: 0">Pistas usadas: 0</div>
+    <div id="hintbox" class="hintbox"></div>
+
+    <div class="divider" style="margin:16px 0;"></div>
+
+    <div class="mobile-secondary">
+      <button class="btn-row" id="btnNew"><span class="ico">🎲</span><span data-es="Nuevo tablero" data-en="New board">Nuevo tablero</span></button>
+      <button class="btn-row danger" id="btnMenu"><span class="ico">⚙</span><span data-es="Cambiar tamaño" data-en="Change size">Cambiar tamaño</span></button>
+      <button class="btn-row" id="btnClear"><span class="ico">🧹</span><span data-es="Limpiar tablero" data-en="Clear board">Limpiar tablero</span></button>
+    </div>
+    <button class="btn-row danger" id="btnMpAbandon" style="display:none;margin-top:8px;"><span class="ico">🚪</span><span data-es="Abandonar partida" data-en="Leave match">Abandonar partida</span></button>
+  </aside>
+</section>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:320px;">
+    <p id="confirmMsg" style="font-size:1rem;margin-bottom:24px;color:var(--text);line-height:1.45;"></p>
+    <div class="modal-actions">
+      <button class="m-btn primary" id="confirmOk" data-es="Confirmar" data-en="Confirm">Confirmar</button>
+      <button class="m-btn ghost" id="confirmCancel" data-es="Cancelar" data-en="Cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIN MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="medal">👑</div>
+    <h2 data-es="¡Resuelto!" data-en="Solved!">¡Resuelto!</h2>
+    <p data-es="Has colocado todas las coronas correctamente." data-en="You placed all crowns correctly.">Has colocado todas las coronas correctamente.</p>
+    <div class="time">
+      <span class="big" id="modalTime">0:00</span>
+      <span class="lab" data-es="min" data-en="min">min</span>
+    </div>
+    <p class="meta" id="modalMeta"></p>
+    <div class="modal-actions">
+      <button class="m-btn primary" id="btnPlayAgain" data-es="Nueva partida" data-en="New game">Nueva partida</button>
+      <button class="m-btn ghost" id="btnViewSolved" data-es="Ver tablero resuelto" data-en="View solved board">Ver tablero resuelto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER: choice modal -->
+<div class="overlay" id="mpChoiceOverlay">
+  <div class="modal" style="max-width:340px;">
+    <h2 style="margin-bottom:20px;" data-es="Multijugador" data-en="Multiplayer">Multijugador</h2>
+    <div class="modal-actions">
+      <button class="m-btn primary" id="btnMpHost" data-es="🏠 Anfitrión" data-en="🏠 Host">🏠 Anfitrión</button>
+      <button class="m-btn ghost" id="btnMpJoin" data-es="🔑 Unirme" data-en="🔑 Join">🔑 Unirme</button>
+      <button class="m-btn ghost" id="btnMpChoiceCancel" data-es="Cancelar" data-en="Cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER: host setup -->
+<div class="overlay" id="mpHostOverlay">
+  <div class="modal" style="max-width:380px;">
+    <h2 style="margin-bottom:18px;" data-es="Crear partida" data-en="Create game">Crear partida</h2>
+    <div id="mpHostConfig">
+      <p class="eyebrow" data-es="Tamaño del tablero" data-en="Board size">Tamaño del tablero</p>
+      <div class="sizes" id="mpSizes" style="margin-bottom:22px;"></div>
+      <p class="eyebrow" data-es="Número de tableros" data-en="Number of boards">Número de tableros</p>
+      <div class="sizes" id="mpCounts" style="margin-bottom:22px;flex-wrap:wrap;"></div>
+      <div class="modal-actions">
+        <button class="m-btn primary" id="btnMpGenerate" disabled data-es="Generar código" data-en="Generate code">Generar código</button>
+        <button class="m-btn ghost" id="btnMpHostCancel1" data-es="Cancelar" data-en="Cancel">Cancelar</button>
+      </div>
+    </div>
+    <div id="mpHostCode" class="hidden">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5;" data-es="Comparte este código con los demás jugadores:" data-en="Share this code with the other players:">Comparte este código con los demás jugadores:</p>
+      <div style="font-size:2.2rem;font-weight:700;letter-spacing:.08em;margin-bottom:16px;font-variant-numeric:tabular-nums;" id="mpCodeDisplay">000000</div>
+      <div class="modal-actions">
+        <button class="m-btn ghost" id="btnMpCopyCode" data-es="📋 Copiar código" data-en="📋 Copy code">📋 Copiar código</button>
+        <button class="m-btn primary" id="btnMpHostStart" data-es="Empezar partida" data-en="Start game">Empezar partida</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER: join -->
+<div class="overlay" id="mpJoinOverlay">
+  <div class="modal" style="max-width:360px;">
+    <h2 style="margin-bottom:16px;" data-es="Unirme a partida" data-en="Join game">Unirme a partida</h2>
+    <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:10px;" data-es="Código de 6 dígitos del anfitrión:" data-en="Host's 6-digit code:">Código de 6 dígitos del anfitrión:</p>
+    <input type="tel" inputmode="numeric" maxlength="6" id="mpJoinInput" style="width:100%;font-size:1.6rem;text-align:center;letter-spacing:.15em;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);margin-bottom:10px;font-variant-numeric:tabular-nums;font-family:inherit;" placeholder="123456">
+    <p id="mpJoinError" style="font-size:.8rem;color:var(--danger);margin-bottom:6px;min-height:1.2em;"></p>
+    <div class="modal-actions">
+      <button class="m-btn primary" id="btnMpJoinStart" data-es="Empezar partida" data-en="Start game">Empezar partida</button>
+      <button class="m-btn ghost" id="btnMpJoinCancel" data-es="Cancelar" data-en="Cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER: per-board result -->
+<div class="overlay" id="mpBoardResultOverlay">
+  <div class="modal">
+    <div class="medal">👑</div>
+    <h2 data-es="¡Tablero resuelto!" data-en="Board solved!">¡Tablero resuelto!</h2>
+    <p class="meta" id="mpBoardResultMeta" style="margin-top:6px;"></p>
+    <div class="time">
+      <span class="big" id="mpBoardResultTime">0:00</span>
+      <span class="lab" data-es="min" data-en="min">min</span>
+    </div>
+    <div class="modal-actions" style="margin-top:22px;">
+      <button class="m-btn primary" id="btnMpNext" data-es="Siguiente ▶" data-en="Next ▶">Siguiente ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER: final summary -->
+<div class="overlay" id="mpFinalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="medal">🏆</div>
+    <h2 data-es="¡Partida completada!" data-en="Game completed!">¡Partida completada!</h2>
+    <div id="mpFinalList" style="text-align:left;margin:18px 0 6px;font-size:.85rem;max-height:260px;overflow-y:auto;"></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0 6px;border-top:1px solid var(--border);font-weight:700;color:var(--text);">
+      <span data-es="Tiempo total" data-en="Total time">Tiempo total</span>
+      <span id="mpFinalTotalTime">0:00</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding-bottom:18px;font-weight:700;color:var(--text);">
+      <span data-es="Pistas totales" data-en="Total hints">Pistas totales</span>
+      <span id="mpFinalTotalHints">0</span>
+    </div>
+    <div class="modal-actions">
+      <button class="m-btn ghost" id="btnMpCopyResults" data-es="📋 Copiar resultados" data-en="📋 Copy results">📋 Copiar resultados</button>
+      <button class="m-btn primary" id="btnMpReplay" data-es="🔁 Volver a jugar" data-en="🔁 Play again">🔁 Volver a jugar</button>
+      <button class="m-btn ghost" id="btnMpHome" data-es="🏠 Inicio" data-en="🏠 Home">🏠 Inicio</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =======================================================================
+   GENERADOR DE TABLEROS (solución única, regiones conectadas)
+   ======================================================================= */
+function shuffle(a, rng){ rng = rng || Math.random; for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* Seeded PRNG (mulberry32) — only used for multiplayer boards so that the
+   same 6-digit code always reproduces the exact same sequence of boards.
+   Single-player generation never passes a seed, so it keeps using
+   Math.random() exactly as before (rng falls back to Math.random). */
+function mulberry32(seed){
+  let t = seed >>> 0;
+  return function(){
+    t += 0x6D2B79F5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function genQueens(n, rng){
+  rng = rng || Math.random;
+  for(let attempt=0; attempt<4000; attempt++){
+    const q=new Array(n).fill(-1);
+    const place=(r)=>{
+      if(r===n) return true;
+      for(const c of shuffle([...Array(n).keys()], rng)){
+        let used=false;
+        for(let rr=0; rr<r; rr++) if(q[rr]===c){used=true;break;}
+        if(used) continue;
+        if(r>0 && Math.abs(q[r-1]-c)<=1) continue;
+        q[r]=c; if(place(r+1)) return true; q[r]=-1;
+      }
+      return false;
+    };
+    if(place(0)) return q;
+  }
+  return null;
+}
+function genRegions(n, queens, rng){
+  rng = rng || Math.random;
+  const color=Array.from({length:n},()=>new Array(n).fill(-1));
+  for(let id=0;id<n;id++) color[id][queens[id]]=id;
+  const dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+  let remaining=n*n-n;
+  while(remaining>0){
+    const opts=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+      if(color[r][c]!==-1) continue;
+      const ns=new Set();
+      for(const[dr,dc]of dirs){const nr=r+dr,nc=c+dc;if(nr<0||nc<0||nr>=n||nc>=n)continue;if(color[nr][nc]!==-1)ns.add(color[nr][nc]);}
+      if(ns.size) opts.push([r,c,[...ns]]);
+    }
+    if(!opts.length) break;
+    const [r,c,ns]=opts[Math.floor(rng()*opts.length)];
+    color[r][c]=ns[Math.floor(rng()*ns.length)];
+    remaining--;
+  }
+  if(remaining>0) return null;
+  return color;
+}
+function solutions(n,color,cap=2){
+  const out=[];const qcol=new Int32Array(n);
+  const rec=(r,colMask,regMask)=>{
+    if(out.length>=cap)return;
+    if(r===n){out.push(qcol.slice());return;}
+    const prev=r>0?qcol[r-1]:-99;
+    for(let c=0;c<n;c++){
+      const cb=1<<c; if(colMask&cb)continue;
+      if(prev!==-99&&Math.abs(prev-c)<=1)continue;
+      const reg=color[r][c];const rb=1<<reg; if(regMask&rb)continue;
+      qcol[r]=c; rec(r+1,colMask|cb,regMask|rb); if(out.length>=cap)return;
+    }
+  };
+  rec(0,0,0); return out;
+}
+function connected(n,color,id){
+  let start=null,cnt=0;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(color[r][c]===id){cnt++;if(!start)start=[r,c];}
+  if(!cnt) return false;
+  const seen=new Uint8Array(n*n);seen[start[0]*n+start[1]]=1;const st=[start];let v=0;
+  const dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+  while(st.length){const[r,c]=st.pop();v++;for(const[dr,dc]of dirs){const nr=r+dr,nc=c+dc;if(nr<0||nc<0||nr>=n||nc>=n)continue;const k=nr*n+nc;if(color[nr][nc]===id&&!seen[k]){seen[k]=1;st.push([nr,nc]);}}}
+  return v===cnt;
+}
+function refine(n,color,queens,rng){
+  rng = rng || Math.random;
+  for(let iter=0;iter<3000;iter++){
+    const sols=solutions(n,color,2);
+    if(sols.length<2) return sols.length===1;
+    const intended=s=>{for(let r=0;r<n;r++)if(s[r]!==queens[r])return false;return true;};
+    const alt=intended(sols[0])?sols[1]:sols[0];
+    const cells=[];
+    for(let r=0;r<n;r++){ if(alt[r]!==queens[r]) cells.push([r,alt[r]]); }
+    shuffle(cells, rng);
+    let done=false;
+    for(const [r,c] of cells){
+      const id=color[r][c];
+      if(r===id && c===queens[id]) continue;
+      const dirs=shuffle([[0,1],[0,-1],[1,0],[-1,0]], rng);
+      for(const[dr,dc]of dirs){
+        const nr=r+dr,nc=c+dc;if(nr<0||nc<0||nr>=n||nc>=n)continue;
+        const nid=color[nr][nc]; if(nid===id)continue;
+        color[r][c]=nid;
+        if(connected(n,color,id)&&connected(n,color,nid)){ done=true; break; }
+        color[r][c]=id;
+      }
+      if(done) break;
+    }
+    if(!done) return false;
+  }
+  return solutions(n,color,2).length===1;
+}
+function generateBoard(n, rng){
+  rng = rng || Math.random;
+  for(let attempt=0; attempt<600; attempt++){
+    const queens=genQueens(n, rng); if(!queens) continue;
+    const color=genRegions(n,queens,rng); if(!color) continue;
+    if(refine(n,color,queens,rng)){
+      let ok=true; for(let r=0;r<n;r++) if(color[r][queens[r]]!==r){ok=false;break;}
+      if(ok){ const s=solutions(n,color,1); if(s.length===1) return {color, solution:s[0]}; }
+    }
+  }
+  return null;
+}
+
+/* =======================================================================
+   PALETA DE COLORES PARA LAS REGIONES
+   ======================================================================= */
+const PALETTE=[
+  "#b191d8",  // 0  purple (lavender)
+  "#f5be8e",  // 1  orange (peach)
+  "#ace49a",  // 2  lime green
+  "#dadada",  // 3  white/light grey
+  "#ce8db0",  // 4  pink (mauve)
+  "#9eced0",  // 5  teal/cyan
+  "#f65f54",  // 6  red/coral
+  "#e2fb78",  // 7  yellow (lime-yellow)
+  "#b2ab99",  // 8  beige/tan
+  "#96b4e8",  // 9  blue (periwinkle)
+  "#b191d8",  // 10 (repeat for n>10)
+  "#f5be8e",  // 11
+  "#ace49a",  // 12
+  "#dadada",  // 13
+];
+
+/* =======================================================================
+   ESTADO DEL JUEGO
+   ======================================================================= */
+const S={
+  n:0, color:null, solution:null,
+  state:null,      // 'empty' | 'cross' | 'queen' per cell
+  cells:[],        // DOM refs
+  history:[],      // for undo (deep snapshots)
+  opts:{autoX:true, hints:true},
+  startTime:0, timerId:null, finished:false,
+  hintCells:[],    // currently highlighted hint cells
+};
+
+/* ---------- SETUP UI ---------- */
+let chosenSize=null;
+const sizesEl=document.getElementById('sizes');
+const playBtn=document.getElementById('playBtn');
+[4,5,6,7,8,9,10].forEach(sz=>{
+  const b=document.createElement('button');
+  b.className='size-btn'; b.textContent=sz; b.dataset.size=sz;
+  b.addEventListener('click',()=>{
+    chosenSize=sz;
+    document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    playBtn.disabled=false;
+    playBtn.textContent = t('playSize', sz);
+  });
+  sizesEl.appendChild(b);
+});
+// default selection
+setTimeout(()=>{ sizesEl.querySelector('[data-size="7"]').click(); },0);
+
+const optAutoX=document.getElementById('optAutoX');
+const optHints=document.getElementById('optHints');
+
+playBtn.addEventListener('click',()=>{
+  if(!chosenSize) return;
+  S.opts.autoX=optAutoX.checked;
+  S.opts.hints=optHints.checked;
+  startGame(chosenSize);
+});
+
+/* ---------- THEME TOGGLE ---------- */
+const btnDark = document.getElementById('btnDark');
+const btnLight = document.getElementById('btnLight');
+function applyTheme(light){
+  document.body.classList.toggle('light-mode', light);
+  btnDark.classList.toggle('active', !light);
+  btnLight.classList.toggle('active', light);
+}
+btnDark.addEventListener('click', () => applyTheme(false));
+btnLight.addEventListener('click', () => applyTheme(true));
+
+/* ---------- LANGUAGE TOGGLE ---------- */
+let currentLang = 'es';
+const btnEs = document.getElementById('btnEs');
+const btnEn = document.getElementById('btnEn');
+
+function applyLang(lang) {
+  currentLang = lang;
+  btnEs.classList.toggle('active', lang === 'es');
+  btnEn.classList.toggle('active', lang === 'en');
+
+  // Update all elements with data-es / data-en
+  document.querySelectorAll('[data-es],[data-en]').forEach(el => {
+    const txt = el.getAttribute('data-' + lang);
+    if (txt === null) return;
+    // If it's an input/button with just text content (no children we care about), set innerHTML
+    if (el.tagName === 'SMALL' || el.tagName === 'P' || el.tagName === 'H2' ||
+        el.tagName === 'H3' || el.tagName === 'SPAN' || el.tagName === 'BUTTON') {
+      el.innerHTML = txt;
+    }
+  });
+
+  // Size buttons
+  document.querySelectorAll('.size-btn').forEach(b => {
+    const sz = parseInt(b.dataset.size);
+    if (b.classList.contains('sel')) {
+      playBtn.textContent = t('playSize', sz);
+    }
+  });
+
+  // Hint count
+  const hc = document.getElementById('hintCount');
+  if (hc) hc.textContent = t('hintsUsed', S.hintsUsed||0);
+}
+
+btnEs.addEventListener('click', () => applyLang('es'));
+btnEn.addEventListener('click', () => applyLang('en'));
+
+/* ---------- BILINGUAL STRINGS ---------- */
+const T = {
+  es: {
+    generating: 'Generando tablero…',
+    genFail: 'No se pudo generar, prueba otro tamaño.',
+    gameStatus: 'Una corona por fila, columna y color. Sin tocarse.',
+    solutionShown: 'Solución del tablero.',
+    playSize: n => `Jugar ${n} × ${n}`,
+    hintsUsed: n => `Pistas usadas: ${n}`,
+    confirmSize: '¿Cambiar de tamaño? Se perderá el progreso de la partida actual.',
+    confirmNew: '¿Empezar un tablero nuevo? Se perderá el progreso actual.',
+    confirmClear: '¿Limpiar el tablero? Se borrarán todas las cruces y coronas que hayas puesto.',
+    // hint banners
+    hintQueenBanner: '👑 Coloca una corona en la casilla resaltada',
+    hintCrossBanner: (n) => `✕ Marca con una cruz ${n>1?'las casillas resaltadas':'la casilla resaltada'}`,
+    hintApplyBtn: 'Marcar en el tablero',
+    // hint messages
+    wrongQueen: (n) => `<b>Antes de avanzar:</b> ${n>1?'estas coronas están':'esta corona está'} mal colocada${n>1?'s':''}. Quítala${n>1?'s':''} para poder seguir resolviendo el tablero.`,
+    wrongCross: (n) => `<b>Antes de avanzar:</b> ${n>1?'estas casillas llevan':'esta casilla lleva'} una cruz pero ${n>1?'sí van a contener corona':'sí va a contener corona'}. Bórrala${n>1?'s':''}.`,
+    forcedColor: `A este color solo le queda una casilla libre (la resaltada), así que <b>ahí va su corona</b>.`,
+    forcedRow: `En esta fila solo queda una casilla libre: <b>ahí va la corona</b>.`,
+    forcedCol: `En esta columna solo queda una casilla libre: <b>ahí va la corona</b>.`,
+    elimRow: `Hay un color que solo tiene casillas libres en esta fila, así que su corona ocupará esta fila. Por eso, las casillas resaltadas (que son de otros colores) no pueden llevar corona.`,
+    elimCol: `Hay un color que solo tiene casillas libres en esta columna, así que su corona ocupará esta columna. Por eso, las casillas resaltadas (que son de otros colores) no pueden llevar corona.`,
+    elimRowAllSame: `Todas las casillas libres de una fila son del mismo color, así que la corona de ese color tiene que estar en esa fila. Por eso, las casillas resaltadas (de ese mismo color, pero en otras filas) no pueden llevar corona.`,
+    elimColAllSame: `Todas las casillas libres de una columna son del mismo color, así que la corona de ese color tiene que estar en esa columna. Por eso, las casillas resaltadas (de ese mismo color, pero en otras columnas) no pueden llevar corona.`,
+    queenRow: `Ya hay una corona en esta fila, y solo puede haber <b>una corona por fila</b>. Las demás casillas de la fila quedan descartadas: márcalas con una cruz.`,
+    queenCol: `Ya hay una corona en esta columna, y solo puede haber <b>una corona por columna</b>. El resto de la columna queda descartado.`,
+    queenRegion: `Ya hay una corona de este color, y cada color admite <b>una sola corona</b>. Las otras casillas del mismo color se descartan.`,
+    queenTouch: `Esta casilla toca una corona ya colocada, y <b>dos coronas no pueden tocarse</b> (ni en diagonal). Por eso se descarta.`,
+    lineReservedRow: `Mirando el tablero ahora mismo, un color solo tiene casillas libres en esta fila, así que su corona irá aquí y <b>reserva la fila</b> entera. Las casillas resaltadas, de otros colores, ya no pueden llevar corona.`,
+    lineReservedCol: `Mirando el tablero ahora mismo, un color solo tiene casillas libres en esta columna, así que su corona irá aquí y <b>reserva la columna</b> entera. Las casillas resaltadas, de otros colores, ya no pueden llevar corona.`,
+    shapeElim: `Las casillas resaltadas son contiguas a <b>todas</b> las casillas libres de un color. La corona de ese color irá en una de esas casillas, y como dos coronas no pueden tocarse, las casillas resaltadas siempre quedan bloqueadas: márcalas con cruz.`,
+    altRow: `En esta fila hay un color que <b>solo cabe aquí</b> (no tiene casillas libres en ninguna otra fila). Eso reserva la fila para él. Las casillas resaltadas pertenecen a otros colores que sí tienen opciones fuera de esta fila, por lo que sus casillas aquí quedan descartadas.`,
+    altCol: `En esta columna hay un color que <b>solo cabe aquí</b> (no tiene casillas libres en ninguna otra columna). Eso reserva la columna para él. Las casillas resaltadas pertenecen a otros colores que sí tienen opciones fuera de esta columna, por lo que sus casillas aquí quedan descartadas.`,
+    nakedRow: (k, list) => k===2
+      ? `Hay <b>${k===2?'dos':k===3?'tres':k+' colores'}</b> cuyas casillas libres están confinadas exactamente en ${list}. Sus coronas tienen que ir en esas ${k} filas, <b>reservándolas</b>. Las casillas resaltadas son de otros colores que también tienen opciones en esas filas, pero como ya están ocupadas, <b>se descartan</b>.`
+      : `Hay <b>${k===2?'dos':k===3?'tres':k+' colores'}</b> cuyas casillas libres están confinadas exactamente en ${list}. Sus ${k} coronas deben ir en esas ${k} filas (una por fila), reservándolas. Las casillas resaltadas, de otros colores en esas mismas filas, se descartan.`,
+    nakedCol: (k, list) => k===2
+      ? `Hay <b>${k===2?'dos':k===3?'tres':k+' colores'}</b> cuyas casillas libres están confinadas exactamente en ${list}. Sus coronas tienen que ir en esas ${k} columnas, <b>reservándolas</b>. Las casillas resaltadas son de otros colores que también tienen opciones en esas columnas, pero como ya están ocupadas, <b>se descartan</b>.`
+      : `Hay <b>${k===2?'dos':k===3?'tres':k+' colores'}</b> cuyas casillas libres están confinadas exactamente en ${list}. Sus ${k} coronas deben ir en esas ${k} columnas (una por columna), reservándolas. Las casillas resaltadas, de otros colores en esas mismas columnas, se descartan.`,
+    chainedQueen: `Aplicando varias deducciones encadenadas: este color queda con <b>una sola casilla libre</b>. Algunos colores vecinos están confinados a filas o columnas concretas, lo que reduce las opciones de este color hasta dejar solo una. <b>Ahí va su corona.</b>`,
+    chainedCross: `Aplicando deducciones encadenadas: algunos colores están confinados a ciertas filas o columnas, lo que <b>reserva</b> esas líneas y descarta otras opciones en cadena. Las casillas resaltadas quedan descartadas como resultado de esa cascada de razonamientos.`,
+    contraFila: (r,c,vr) => `pondría la corona en la columna ${c+1} y en la fila ${r+1}, bloqueando todas las casillas de la <b>fila ${vr+1}</b>. Esa fila se quedaría sin ninguna casilla libre para su corona, lo cual es imposible`,
+    contraCol: (r,c,vc) => `pondría la corona en la fila ${r+1} y en la columna ${c+1}, bloqueando todas las casillas de la <b>columna ${vc+1}</b>. Esa columna se quedaría sin ninguna casilla libre para su corona, lo cual es imposible`,
+    contraColor: `bloquearía todas las casillas libres restantes del <b>color resaltado</b> en el tablero. Ese color se quedaría sin ningún sitio donde colocar su corona, lo cual es imposible`,
+    contraEnd: tip => `Poner una corona aquí ${tip}. Por eso esta casilla <b>no puede llevar corona</b>.`,
+    noHint: `Pista no disponible actualmente, busca más a fondo ;)`,
+    queensPlaced: (p, n) => `Coronas colocadas: ${p} / ${n}`,
+    conflictFila: 'en la misma fila',
+    conflictColumna: 'en la misma columna',
+    conflictColor: 'en el mismo color',
+    conflictContacto: 'tocándose',
+    conflictStatus: (parts) => `⚠ Coronas en conflicto: hay dos ${parts}.`,
+    mpBoardOf: (i,total) => `Tablero ${i}/${total}`,
+    mpBoardMeta: (i,total,hints) => `Tablero ${i} de ${total}${hints>0?` · 💡 ${hints} pista${hints>1?'s':''}`:''}`,
+    mpBoardLabel: (i) => `Tablero ${i}`,
+    mpTotalTimeLabel: 'Tiempo total',
+    mpTotalHintsLabel: 'Pistas totales',
+    mpCodeLabel: 'Código',
+    mpBadCode: 'Introduce un código válido de 6 dígitos.',
+    mpNeedSize: 'Selecciona el tamaño de tablero que ha indicado el anfitrión.',
+    mpCopied: '✅ Copiado',
+    confirmMpReplay: '¿Volver a jugar? Se generará una nueva partida con tableros distintos.',
+    confirmMpHome: '¿Volver al inicio? Saldrás de la partida multijugador.',
+    confirmMpAbandon: '¿Abandonar la partida? Perderás el progreso del tablero actual.',
+  },
+  en: {
+    generating: 'Generating board…',
+    genFail: 'Could not generate, try another size.',
+    gameStatus: 'One crown per row, column and color. Without touching.',
+    solutionShown: 'Board solution.',
+    playSize: n => `Play ${n} × ${n}`,
+    hintsUsed: n => `Hints used: ${n}`,
+    confirmSize: 'Change size? Current game progress will be lost.',
+    confirmNew: 'Start a new board? Current progress will be lost.',
+    confirmClear: 'Clear the board? All crosses and crowns you placed will be erased.',
+    hintQueenBanner: '👑 Place a crown on the highlighted cell',
+    hintCrossBanner: (n) => `✕ Mark with a cross ${n>1?'the highlighted cells':'the highlighted cell'}`,
+    hintApplyBtn: 'Mark on board',
+    wrongQueen: (n) => `<b>Before continuing:</b> ${n>1?'these crowns are':'this crown is'} misplaced. Remove ${n>1?'them':'it'} to keep solving the board.`,
+    wrongCross: (n) => `<b>Before continuing:</b> ${n>1?'these cells have':'this cell has'} a cross but ${n>1?'they need a crown':'it needs a crown'}. Remove ${n>1?'them':'it'}.`,
+    forcedColor: `This color has only one free cell left (highlighted), so <b>the crown goes there</b>.`,
+    forcedRow: `This row has only one free cell left: <b>the crown goes there</b>.`,
+    forcedCol: `This column has only one free cell left: <b>the crown goes there</b>.`,
+    elimRow: `A color has free cells only in this row, so its crown will occupy this row. Therefore, the highlighted cells (of other colors) cannot hold a crown.`,
+    elimCol: `A color has free cells only in this column, so its crown will occupy this column. Therefore, the highlighted cells (of other colors) cannot hold a crown.`,
+    elimRowAllSame: `All free cells in a row belong to the same color, so that color's crown must be in this row. Therefore, the highlighted cells (same color, other rows) cannot hold a crown.`,
+    elimColAllSame: `All free cells in a column belong to the same color, so that color's crown must be in this column. Therefore, the highlighted cells (same color, other columns) cannot hold a crown.`,
+    queenRow: `There is already a crown in this row, and only <b>one crown per row</b> is allowed. All other cells in the row are eliminated — mark them with a cross.`,
+    queenCol: `There is already a crown in this column, and only <b>one crown per column</b> is allowed. The rest of the column is eliminated.`,
+    queenRegion: `There is already a crown of this color, and each color allows <b>only one crown</b>. All other cells of the same color are eliminated.`,
+    queenTouch: `This cell touches a placed crown, and <b>two crowns cannot touch</b> (not even diagonally). So it is eliminated.`,
+    lineReservedRow: `Looking at the current board, a color has free cells only in this row, so its crown goes here and <b>reserves the whole row</b>. The highlighted cells, of other colors, can no longer hold a crown.`,
+    lineReservedCol: `Looking at the current board, a color has free cells only in this column, so its crown goes here and <b>reserves the whole column</b>. The highlighted cells, of other colors, can no longer hold a crown.`,
+    shapeElim: `The highlighted cells are adjacent to <b>all</b> free cells of a color. That color's crown will land on one of its cells, and since two crowns cannot touch, the highlighted cells are always blocked — mark them with a cross.`,
+    altRow: `In this row there is a color that <b>only fits here</b> (no free cells in any other row). That reserves the row for it. The highlighted cells belong to other colors that do have options elsewhere, so their cells here are eliminated.`,
+    altCol: `In this column there is a color that <b>only fits here</b> (no free cells in any other column). That reserves the column for it. The highlighted cells belong to other colors that do have options elsewhere, so their cells here are eliminated.`,
+    nakedRow: (k, list) => k===2
+      ? `There are <b>${k===2?'two':k===3?'three':k+' colors'}</b> whose free cells are confined exactly to ${list}. Their crowns must go in those ${k} rows, <b>reserving them</b>. The highlighted cells belong to other colors with options in those rows, but since they are taken, <b>they are eliminated</b>.`
+      : `There are <b>${k===2?'two':k===3?'three':k+' colors'}</b> whose free cells are confined exactly to ${list}. Their ${k} crowns must go in those ${k} rows (one per row), reserving them. The highlighted cells, of other colors in those same rows, are eliminated.`,
+    nakedCol: (k, list) => k===2
+      ? `There are <b>${k===2?'two':k===3?'three':k+' colors'}</b> whose free cells are confined exactly to ${list}. Their crowns must go in those ${k} columns, <b>reserving them</b>. The highlighted cells belong to other colors with options in those columns, but since they are taken, <b>they are eliminated</b>.`
+      : `There are <b>${k===2?'two':k===3?'three':k+' colors'}</b> whose free cells are confined exactly to ${list}. Their ${k} crowns must go in those ${k} columns (one per column), reserving them. The highlighted cells, of other colors in those same columns, are eliminated.`,
+    chainedQueen: `Applying several chained deductions: this color ends up with <b>only one free cell</b>. Neighboring colors are confined to specific rows or columns, which narrows this color's options down to just one. <b>The crown goes there.</b>`,
+    chainedCross: `Applying chained deductions: some colors are confined to certain rows or columns, which <b>reserves</b> those lines and cascades into further eliminations. The highlighted cells are eliminated as a result of that chain of reasoning.`,
+    contraFila: (r,c,vr) => `would place the crown in column ${c+1} and row ${r+1}, blocking all cells in <b>row ${vr+1}</b>. That row would have no free cell left for its crown, which is impossible`,
+    contraCol: (r,c,vc) => `would place the crown in row ${r+1} and column ${c+1}, blocking all cells in <b>column ${vc+1}</b>. That column would have no free cell left for its crown, which is impossible`,
+    contraColor: `would block all remaining free cells of the <b>highlighted color</b> on the board. That color would have nowhere to place its crown, which is impossible`,
+    contraEnd: tip => `Placing a crown here ${tip}. Therefore this cell <b>cannot hold a crown</b>.`,
+    noHint: `No hint available right now, look deeper ;)`,
+    queensPlaced: (p, n) => `Crowns placed: ${p} / ${n}`,
+    conflictFila: 'in the same row',
+    conflictColumna: 'in the same column',
+    conflictColor: 'in the same color',
+    conflictContacto: 'touching each other',
+    conflictStatus: (parts) => `⚠ Crown conflict: two crowns ${parts}.`,
+    mpBoardOf: (i,total) => `Board ${i}/${total}`,
+    mpBoardMeta: (i,total,hints) => `Board ${i} of ${total}${hints>0?` · 💡 ${hints} hint${hints>1?'s':''}`:''}`,
+    mpBoardLabel: (i) => `Board ${i}`,
+    mpTotalTimeLabel: 'Total time',
+    mpTotalHintsLabel: 'Total hints',
+    mpCodeLabel: 'Code',
+    mpBadCode: 'Enter a valid 6-digit code.',
+    mpNeedSize: 'Select the board size the host told you.',
+    mpCopied: '✅ Copied',
+    confirmMpReplay: 'Play again? A new match with different boards will be generated.',
+    confirmMpHome: 'Go back to the start? You will leave the multiplayer match.',
+    confirmMpAbandon: 'Leave the match? Progress on the current board will be lost.',
+  }
+};
+function t(key, ...args){ const fn = T[currentLang][key]; return typeof fn === 'function' ? fn(...args) : fn; }
+
+const setupEl=document.getElementById('setup');
+const gameEl=document.getElementById('game');
+const boardEl=document.getElementById('board');
+const statusEl=document.getElementById('status');
+const timerEl=document.getElementById('timer');
+const hintBox=document.getElementById('hintbox');
+const btnHint=document.getElementById('btnHint');
+
+/* ---------- Confirm modal ---------- */
+let _confirmAction=null;
+function confirmDo(msg, action){
+  document.getElementById('confirmMsg').textContent=msg;
+  _confirmAction=action;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+document.getElementById('confirmOk').addEventListener('click',()=>{
+  document.getElementById('confirmOverlay').classList.remove('show');
+  if(_confirmAction){ _confirmAction(); _confirmAction=null; }
+});
+document.getElementById('confirmCancel').addEventListener('click',()=>{
+  document.getElementById('confirmOverlay').classList.remove('show');
+  _confirmAction=null;
+});
+
+document.getElementById('btnMenu').addEventListener('click',()=>{
+  confirmDo(t('confirmSize'),()=>{
+    stopTimer();
+    gameEl.classList.add('hidden'); setupEl.classList.remove('hidden');
+    // Show dedication again on setup screen
+    const ded = document.getElementById('dedication');
+    if (ded) ded.style.display = '';
+  });
+});
+document.getElementById('btnNew').addEventListener('click',()=>{
+  confirmDo(t('confirmNew'),()=> startGame(S.n));
+});
+document.getElementById('btnClear').addEventListener('click',()=>{
+  confirmDo(t('confirmClear'),clearMarks);
+});
+document.getElementById('btnUndo').addEventListener('click',undo);
+btnHint.addEventListener('click',giveHint);
+
+document.getElementById('btnPlayAgain').addEventListener('click',()=>{
+  document.getElementById('overlay').classList.remove('show');
+  startGame(S.n);
+});
+document.getElementById('btnViewSolved').addEventListener('click',()=>{
+  document.getElementById('overlay').classList.remove('show');
+  revealSolution();
+});
+
+function revealSolution(){
+  const n=S.n, sol=S.solution;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    S.state[r][c] = (sol[r]===c) ? 'queen' : 'empty';
+    S.cells[r][c].classList.remove('bad','conflict','hint-cross','hint-queen','blocked-shade');
+    renderCell(r,c);
+  }
+  clearHint();
+  statusEl.textContent = t('solutionShown'); statusEl.className='status good';
+  statusEl.className='status good';
+}
+
+/* =======================================================================
+   INICIO DE PARTIDA
+   ======================================================================= */
+function startGame(n, seed){
+  document.getElementById('overlay').classList.remove('show');
+  statusEl.textContent = t('generating');
+  statusEl.className='status';
+  setupEl.classList.add('hidden'); gameEl.classList.remove('hidden');
+  // Hide dedication during game
+  const ded = document.getElementById('dedication');
+  if (ded) ded.style.display = 'none';
+  // generate async-ish so UI can paint
+  setTimeout(()=>{
+    // Single-player: seed is undefined -> rng is undefined -> generateBoard falls
+    // back to Math.random exactly as before. Multiplayer passes a numeric seed so
+    // the exact same board is produced on every device that uses that seed.
+    const rng = (seed!=null) ? mulberry32(seed) : undefined;
+    const board=generateBoard(n, rng);
+    if(!board){ statusEl.textContent = t('genFail'); return; }
+    S.n=n; S.color=board.color; S.solution=board.solution;
+    S.state=Array.from({length:n},()=>new Array(n).fill('empty'));
+    S.history=[]; S.finished=false; S.hintCells=[];
+    S.auto=new Set(); S.hintsUsed=0; S.lastElapsed=null; S.hintPending=null;
+    buildBoard();
+    clearHint();
+    statusEl.textContent = t('gameStatus');
+    statusEl.className='status';
+    startTimer();
+    btnHint.style.display = S.opts.hints ? '' : 'none';
+    if(MP.active) updateMPGameInfo();
+  },30);
+}
+
+function buildBoard(){
+  const n=S.n;
+  boardEl.innerHTML='';
+  boardEl.style.gridTemplateColumns=`repeat(${n},1fr)`;
+  boardEl.style.fontSize='';
+  S.cells=Array.from({length:n},()=>new Array(n));
+  // cross: two diagonal strokes filling the 100x100 viewBox
+  const X_SVG='<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">'+
+    '<line x1="14" y1="14" x2="86" y2="86"/><line x1="86" y1="14" x2="14" y2="86"/></svg>';
+  // crown: gold fill with black outline
+  const Q_SVG='<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">'+
+    '<g fill="#F0C040" stroke="#000" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">'+
+    '<path d="M12 34 L26 78 L74 78 L88 34 L68 52 L50 22 L32 52 Z"/>'+
+    '<rect x="24" y="80" width="52" height="13" rx="3"/>'+
+    '</g>'+
+    '<g fill="#F0C040" stroke="#000" stroke-width="3">'+
+    '<circle cx="12" cy="32" r="7"/><circle cx="50" cy="18" r="7"/><circle cx="88" cy="32" r="7"/>'+
+    '</g></svg>';
+  for(let r=0;r<n;r++){
+    for(let c=0;c<n;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      cell.style.background=PALETTE[S.color[r][c]%PALETTE.length];
+      cell.dataset.r=r; cell.dataset.c=c;
+      const x=document.createElement('span'); x.className='mark x'; x.innerHTML=X_SVG;
+      const q=document.createElement('span'); q.className='mark q'; q.innerHTML=Q_SVG;
+      cell.appendChild(x); cell.appendChild(q);
+      boardEl.appendChild(cell);
+      S.cells[r][c]=cell;
+    }
+  }
+  attachPointer();
+}
+
+/* =======================================================================
+   INTERACCIÓN: tap / doble-tap / drag
+   ======================================================================= */
+let drag={active:false, mode:null, moved:false, startCell:null, painted:null, lastTapCell:null, lastTapTime:0, pointerId:null};
+
+function attachPointer(){
+  // Bind board-level handlers once; rebuilding the board reuses the same #board node.
+  if(attachPointer._bound) return;
+  attachPointer._bound=true;
+  boardEl.addEventListener('pointerdown',onDown);
+  // move and up listen on window so the gesture is tracked even off the board
+  window.addEventListener('pointermove',onMove);
+  window.addEventListener('pointerup',onUp);
+  window.addEventListener('pointercancel',onUp);
+  // if the pointer capture is lost (e.g. leaving the window), end the gesture cleanly
+  boardEl.addEventListener('lostpointercapture',onUp);
+}
+function cellFromPoint(x,y){
+  const el=document.elementFromPoint(x,y);
+  if(!el) return null;
+  const cell=el.closest('.cell');
+  if(!cell || !boardEl.contains(cell)) return null;
+  return cell;
+}
+function onDown(e){
+  if(S.finished) return;
+  const cell=e.target.closest('.cell'); if(!cell) return;
+  e.preventDefault();
+  clearHint();
+  drag.active=true; drag.moved=false; drag.startCell=cell;
+  drag.pointerId=e.pointerId;
+  // capture the pointer so we always receive its up event, even outside the board
+  try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+  drag.painted=new Set();
+  const r=+cell.dataset.r, c=+cell.dataset.c;
+  // mode based on starting cell's state
+  const st=S.state[r][c];
+  if(st==='empty'){ drag.mode='paintX'; }
+  else if(st==='cross'){ drag.mode='eraseX'; }
+  else { drag.mode='queenStart'; } // started on a queen — single tap will clear it
+}
+function applyDragTo(r,c){
+  const key=r+'-'+c;
+  if(drag.painted.has(key)) return;
+  drag.painted.add(key);
+  if(drag.mode==='paintX' || drag.mode==='queenStart'){
+    if(S.state[r][c]==='empty'){ snapshotMaybe(); setState(r,c,'cross',false); }
+  } else if(drag.mode==='eraseX'){
+    if(S.state[r][c]==='cross'){ snapshotMaybe(); setState(r,c,'empty',false); }
+  }
+}
+function onMove(e){
+  if(!drag.active) return;
+  if(drag.pointerId!=null && e.pointerId!==drag.pointerId) return;
+  const cell=cellFromPoint(e.clientX,e.clientY);
+  // Off the board: don't paint, just wait. Painting resumes only on cells we pass over.
+  if(!cell) return;
+  if(cell!==drag.startCell && !drag.moved){
+    // movement just began → also act on the START cell so the drag includes it
+    drag.moved=true;
+    const sr=+drag.startCell.dataset.r, sc=+drag.startCell.dataset.c;
+    applyDragTo(sr,sc);
+  }
+  if(!drag.moved) return;
+  const r=+cell.dataset.r, c=+cell.dataset.c;
+  applyDragTo(r,c);
+}
+function onUp(e){
+  if(!drag.active) return;
+  if(e && e.pointerId!=null && drag.pointerId!=null && e.pointerId!==drag.pointerId) return;
+  const wasDrag=drag.moved;
+  const cell=drag.startCell;
+  drag.active=false;
+  try{ if(drag.pointerId!=null) boardEl.releasePointerCapture(drag.pointerId); }catch(_){}
+  drag.pointerId=null;
+  if(!cell) return;
+  if(wasDrag){
+    finalizeChange();
+    return;
+  }
+  // ---- it was a TAP (no movement) ----
+  const r=+cell.dataset.r, c=+cell.dataset.c;
+  const now=Date.now();
+  const isDouble = drag.lastTapCell===cell && (now-drag.lastTapTime)<300;
+
+  const st=S.state[r][c];
+  snapshot();
+  if(isDouble){
+    // Second click of a double: act on the state the cell had BEFORE the first
+    // click of this double (the first click already mutated it once).
+    const before = drag.lastTapPrevState;
+    if(before==='empty' || before==null){
+      // double click on an empty cell → place a queen directly
+      setState(r,c,'queen',true);
+    } else {
+      // double click on a crossed cell or a queen → clear it
+      setState(r,c,'empty',true);
+    }
+    // reset so a following click starts a fresh tap (no triple-chaining)
+    drag.lastTapCell=null; drag.lastTapPrevState=null; drag.lastTapTime=0;
+  } else {
+    // remember what this cell looked like before we change it, for a possible double
+    drag.lastTapPrevState=st;
+    if(st==='empty'){
+      setState(r,c,'cross',true);
+    } else if(st==='cross'){
+      setState(r,c,'queen',true);
+    } else { // queen
+      setState(r,c,'empty',true);
+    }
+    drag.lastTapCell=cell; drag.lastTapTime=now;
+  }
+  finalizeChange();
+}
+
+/* =======================================================================
+   CAMBIO DE ESTADO + AUTO-CRUCES + SOMBREADO
+   ======================================================================= */
+function setState(r,c,val,single){
+  S.state[r][c]=val;
+  renderCell(r,c);
+}
+function renderCell(r,c){
+  const cell=S.cells[r][c];
+  const st=S.state[r][c];
+  cell.classList.toggle('cross', st==='cross');
+  cell.classList.toggle('queen', st==='queen');
+  // distinguish auto-placed crosses (faint) from user crosses (bold), like the original
+  const isAuto = st==='cross' && S.auto && S.auto.has(r+'-'+c);
+  cell.classList.toggle('auto', isAuto);
+}
+
+// After any user-initiated change settles, recompute auto-crosses + shading + win check.
+function finalizeChange(){
+  applyAutoMarks();
+  refreshShade();
+  checkErrorsLive();
+  checkWin();
+}
+
+// Auto-cross: cells blocked by queens get ✕ (only if option on). We track which
+// crosses are "auto" so we can recompute cleanly without erasing user crosses.
+function applyAutoMarks(){
+  const n=S.n;
+  // First, remove auto crosses that are no longer justified, keep user crosses & queens.
+  // Strategy: store autoCross set on S.
+  if(!S.auto) S.auto=new Set();
+  if(!S.opts.autoX){
+    // option off: clear any auto crosses we previously added
+    for(const key of S.auto){
+      const [r,c]=key.split('-').map(Number);
+      if(S.state[r][c]==='cross'){ S.state[r][c]='empty'; renderCell(r,c); }
+    }
+    S.auto.clear();
+    return;
+  }
+  // compute blocked cells from current queens
+  const blocked=new Set();
+  const queens=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') queens.push([r,c]);
+  for(const [qr,qc] of queens){
+    for(let k=0;k<n;k++){ blocked.add(qr+'-'+k); blocked.add(k+'-'+qc); }
+    for(const [dr,dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+      const nr=qr+dr,nc=qc+dc; if(nr>=0&&nc>=0&&nr<n&&nc<n) blocked.add(nr+'-'+nc);
+    }
+    // same color region
+    const id=S.color[qr][qc];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id) blocked.add(r+'-'+c);
+  }
+  // remove previous auto crosses not blocked anymore
+  for(const key of [...S.auto]){
+    const [r,c]=key.split('-').map(Number);
+    if(!blocked.has(key)){
+      if(S.state[r][c]==='cross'){ S.state[r][c]='empty'; renderCell(r,c); }
+      S.auto.delete(key);
+    }
+  }
+  // add auto crosses for blocked empty cells
+  for(const key of blocked){
+    const [r,c]=key.split('-').map(Number);
+    if(S.state[r][c]==='empty'){ S.state[r][c]='cross'; S.auto.add(key); renderCell(r,c); }
+  }
+}
+
+function refreshShade(){ /* shade option removed */ }
+
+/* live error indication: highlight any queens that conflict with another,
+   so the player notices the mistake immediately without asking for a hint */
+function checkErrorsLive(){
+  const n=S.n;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) S.cells[r][c].classList.remove('bad','conflict');
+  const qs=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') qs.push([r,c]);
+  const conflict=new Set();
+  const reasons=new Set();
+  for(let i=0;i<qs.length;i++)for(let j=i+1;j<qs.length;j++){
+    const [r1,c1]=qs[i],[r2,c2]=qs[j];
+    let bad=false;
+    if(r1===r2){ reasons.add('fila'); bad=true; }
+    if(c1===c2){ reasons.add('columna'); bad=true; }
+    if(S.color[r1][c1]===S.color[r2][c2]){ reasons.add('color'); bad=true; }
+    if(Math.abs(r1-r2)<=1 && Math.abs(c1-c2)<=1){ reasons.add('contacto'); bad=true; }
+    if(bad){ conflict.add(i); conflict.add(j); }
+  }
+  for(const i of conflict){ const [r,c]=qs[i]; S.cells[r][c].classList.add('conflict'); }
+  if(conflict.size){
+    const parts=[];
+    if(reasons.has('fila')) parts.push(t('conflictFila'));
+    if(reasons.has('columna')) parts.push(t('conflictColumna'));
+    if(reasons.has('color')) parts.push(t('conflictColor'));
+    if(reasons.has('contacto')) parts.push(t('conflictContacto'));
+    statusEl.textContent = t('conflictStatus', parts.join(currentLang==='es' ? ' o ' : ' or '));
+    statusEl.className='status err';
+  } else if(!S.finished){
+    const placed=qs.length;
+    statusEl.textContent = t('queensPlaced', placed, n);
+    statusEl.className='status';
+  }
+}
+
+/* =======================================================================
+   VICTORIA
+   ======================================================================= */
+function checkWin(){
+  const n=S.n;
+  const qs=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') qs.push([r,c]);
+  if(qs.length!==n) return;
+  // validate
+  const cols=new Set(),regs=new Set(),rows=new Set();
+  for(const [r,c] of qs){rows.add(r);cols.add(c);regs.add(S.color[r][c]);}
+  if(rows.size!==n||cols.size!==n||regs.size!==n) return;
+  for(let i=0;i<qs.length;i++)for(let j=i+1;j<qs.length;j++){
+    const [r1,c1]=qs[i],[r2,c2]=qs[j];
+    if(Math.abs(r1-r2)<=1&&Math.abs(c1-c2)<=1) return;
+  }
+  // win!
+  S.finished=true; stopTimer();
+  statusEl.textContent='¡Resuelto!';
+  statusEl.className='status good';
+  clearHint();
+  if(MP.active){ handleMPWin(); } else { showWinModal(); }
+}
+
+function showWinModal(){
+  const elapsed=Math.floor((S.lastElapsed!=null?S.lastElapsed:(Date.now()-S.startTime))/1000);
+  const m=Math.floor(elapsed/60), s=elapsed%60;
+  document.getElementById('modalTime').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  let meta=`Tablero ${S.n} × ${S.n}`;
+  if(S.hintsUsed>0) meta+=` · ${S.hintsUsed} pista${S.hintsUsed>1?'s':''}`;
+  document.getElementById('modalMeta').textContent=meta;
+  document.getElementById('overlay').classList.add('show');
+}
+
+/* =======================================================================
+   HISTORIAL / DESHACER / LIMPIAR
+   ======================================================================= */
+function snapshot(){
+  S.history.push({
+    state:S.state.map(row=>row.slice()),
+    auto:S.auto?new Set(S.auto):new Set()
+  });
+  if(S.history.length>200) S.history.shift();
+}
+let snapGuard=false;
+function snapshotMaybe(){ // for drag: snapshot once at start of a drag-paint run
+  if(!snapGuard){ snapshot(); snapGuard=true; }
+}
+function undo(){
+  if(S.finished) return;
+  if(!S.history.length){ flashStatus('Nada que deshacer.'); return; }
+  const snap=S.history.pop();
+  S.state=snap.state.map(row=>row.slice());
+  S.auto=new Set(snap.auto);
+  renderAll();
+  refreshShade(); checkErrorsLive(); clearHint();
+}
+function clearMarks(){
+  if(S.finished) return;
+  snapshot();
+  const n=S.n;
+  S.state=Array.from({length:n},()=>new Array(n).fill('empty'));
+  S.auto=new Set();
+  renderAll(); refreshShade(); checkErrorsLive(); clearHint();
+  statusEl.textContent='Tablero limpio.'; statusEl.className='status';
+}
+function renderAll(){
+  const n=S.n;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) renderCell(r,c);
+}
+// reset drag snapshot guard after each pointer interaction
+window.addEventListener('pointerup',()=>{ snapGuard=false; });
+
+/* =======================================================================
+   MOTOR DE PISTAS (deductivo, prioriza corregir errores)
+   =======================================================================
+   1. Si hay coronas mal colocadas (contradicen la solución única o entran
+      en conflicto), señalarlas primero.
+   2. Si no, buscar una deducción lógica: una celda que DEBE llevar cruz, o
+      una región/fila/columna que solo deja una casilla para la corona.
+*/
+function clearHint(){
+  for(const [r,c] of S.hintCells){
+    const cell=S.cells[r][c];
+    cell.classList.remove('hint-cross','hint-queen','hint-victim');
+    // remove any injected ghost crown SVG
+    const ghost=cell.querySelector('.hint-q-ghost');
+    if(ghost) ghost.remove();
+  }
+  S.hintCells=[];
+  S.hintPending=null;
+  hintBox.classList.remove('show'); hintBox.innerHTML='';
+}
+function applyHintHighlight(){
+  if(!S.hintPending) return;
+  const {cells, queen} = S.hintPending;
+  snapshot();
+  // Apply the hint action to the game state, exactly as if the user did it
+  for(const [r,c] of cells){
+    if(queen){
+      setState(r,c,'queen',true);
+    } else {
+      if(S.state[r][c]==='empty') setState(r,c,'cross',false);
+    }
+  }
+  clearHint();
+  finalizeChange();
+}
+
+function showHint(cells, html, queen=false, victimCells=[]){
+  clearHint();
+  S.hintCells=[...cells, ...victimCells];
+  S.hintPending = cells.length ? {cells, victimCells, queen} : null;
+
+  // Build banner
+  let banner='';
+  if(cells.length){
+    banner = queen
+      ? `<div class="hint-tag queen">${t('hintQueenBanner')}</div>`
+      : `<div class="hint-tag cross">${t('hintCrossBanner', cells.length)}</div>`;
+  }
+
+  const actionBtn = cells.length
+    ? `<div class="hint-btns"><button id="hintApplyBtn" class="hint-show-btn primary" onclick="applyHintHighlight()">${t('hintApplyBtn')}</button></div>`
+    : '';
+
+  hintBox.innerHTML = actionBtn + html;
+  hintBox.classList.add('show');
+
+  // Show immediately on board
+  if(cells.length) revealHintOnBoard();
+}
+
+function revealHintOnBoard(){
+  if(!S.hintPending) return;
+  const {cells, victimCells, queen} = S.hintPending;
+  for(const [r,c] of cells){
+    const cell=S.cells[r][c];
+    cell.classList.add(queen?'hint-queen':'hint-cross');
+    if(queen && !cell.querySelector('.hint-q-ghost')){
+      const ghost=document.createElement('span');
+      ghost.className='hint-q-ghost';
+      ghost.innerHTML='<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">'+
+        '<g fill="#F0C040" stroke="#000" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">'+
+        '<path d="M12 34 L26 78 L74 78 L88 34 L68 52 L50 22 L32 52 Z"/>'+
+        '<rect x="24" y="80" width="52" height="13" rx="3"/>'+
+        '</g>'+
+        '<g fill="#F0C040" stroke="#000" stroke-width="3">'+
+        '<circle cx="12" cy="32" r="7"/><circle cx="50" cy="18" r="7"/><circle cx="88" cy="32" r="7"/>'+
+        '</g></svg>';
+      cell.appendChild(ghost);
+    }
+  }
+  for(const [r,c] of victimCells){
+    if(!cells.some(([cr,cc])=>cr===r&&cc===c))
+      S.cells[r][c].classList.add('hint-victim');
+  }
+  // hide Mostrar, keep Usar pista
+  const btn=document.getElementById('hintShowBtn');
+  if(btn) btn.style.display='none';
+}
+
+function giveHint(){
+  if(S.finished) return;
+  if(!S.opts.hints) return;
+  S.hintsUsed=(S.hintsUsed||0)+1;
+  const n=S.n, sol=S.solution;
+
+  // --- Step 1: detect wrong queens (queen where solution has none) ---
+  const wrong=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(S.state[r][c]==='queen' && sol[r]!==c) wrong.push([r,c]);
+  }
+  if(wrong.length){
+    showHint(wrong, t('wrongQueen', wrong.length), true);
+    return;
+  }
+  // --- also: a user cross on a cell that the solution needs as a queen is an error ---
+  const wrongCross=[];
+  for(let r=0;r<n;r++){
+    const c=sol[r];
+    if(S.state[r][c]==='cross' && !(S.auto&&S.auto.has(r+'-'+c))){
+      wrongCross.push([r,c]);
+    }
+  }
+  if(wrongCross.length){
+    showHint(wrongCross, t('wrongCross', wrongCross.length), true);
+    return;
+  }
+
+  // --- Step 2: logical deductions from the CURRENT snapshot (queens + crosses) ---
+  const blocked=computeBlocked();
+
+  // 2a. A region / row / column with exactly one available cell → place a queen.
+  const forced=findForcedQueen(blocked);
+  if(forced){
+    showHint([[forced.r,forced.c]], forced.msg, true);
+    return;
+  }
+
+  // 2b. Cells the player can cross because they share a row/column/colour with a
+  //     queen already placed, or touch one diagonally (teaches the basic rules).
+  const qElim=findQueenBasedElimination(blocked);
+  if(qElim){
+    const safe=qElim.cells.filter(([r,c])=>sol[r]!==c);
+    if(safe.length){ showHint(safe, qElim.msg, false); return; }
+  }
+
+  // 2c. A colour whose free cells all lie on one row/column reserves that line, so
+  //     other cells on it can be crossed. Also check the symmetric pattern (all
+  //     free cells in a row/col share one colour).
+  for(const finder of [findLineReservedByColor, findEliminableCell]){
+    const res=finder(blocked);
+    if(res){
+      const safe=res.cells.filter(([r,c])=>sol[r]!==c);
+      if(safe.length){ showHint(safe, res.msg, false); return; }
+    }
+  }
+
+  // 2d. Shape-based: cells adjacent to ALL free cells of a colour are always blocked
+  //     regardless of where the queen lands within that colour.
+  const shape=findShapeBasedElimination(blocked);
+  if(shape){
+    const safe=shape.cells.filter(([r,c])=>sol[r]!==c);
+    if(safe.length){ showHint(safe, shape.msg, false); return; }
+  }
+
+  // 2e. Alternative-colour: a row/column has a confined colour (only fits here) so
+  //     other colours with options elsewhere are displaced from that line.
+  const altCol=findAlternativeColorElimination(blocked);
+  if(altCol){
+    const safe=altCol.cells.filter(([r,c])=>sol[r]!==c);
+    if(safe.length){ showHint(safe, altCol.msg, false); return; }
+  }
+
+  // 2f. Naked sets: N colours confined to exactly N rows/columns reserve those
+  //     lines — other colours' cells in those lines are eliminated.
+  const naked=findNakedSet(blocked);
+  if(naked){
+    const safe=naked.cells.filter(([r,c])=>sol[r]!==c);
+    if(safe.length){ showHint(safe, naked.msg, false); return; }
+  }
+
+  // 2g. Chained deduction: propagate confinement rules iteratively to unblock
+  //     situations that require two or more steps to see.
+  const chained=findChainedElimination(blocked);
+  if(chained){
+    const safe=chained.cells.filter(([r,c])=>sol[r]!==c);
+    if(safe.length){
+      showHint(safe, chained.msg, chained.queen===true);
+      return;
+    }
+  }
+
+  // 2h. One-step look-ahead: a cell that, if it held a queen, would leave some
+  //     row/column/colour with no options at all → it must be crossed.
+  const contra=findContradictionElimination(blocked);
+  if(contra){
+    // Build victim cells to highlight on the board (the row/col that would go empty)
+    const victims=[];
+    const n2=S.n;
+    if(contra.reason==='fila'){
+      for(let c2=0;c2<n2;c2++) if(S.state[contra.victimRow][c2]!=='queen') victims.push([contra.victimRow,c2]);
+    } else if(contra.reason==='columna'){
+      for(let r2=0;r2<n2;r2++) if(S.state[r2][contra.victimCol]!=='queen') victims.push([r2,contra.victimCol]);
+    }
+    showHint(contra.cells, contra.msg, false, victims);
+    return;
+  }
+
+  // 2e. No single-step deduction is available from the current marks.
+  showHint([], t('noHint'), false);
+}
+
+/* current cells that cannot hold a queen, based on user's queens + crosses */
+function computeBlocked(){
+  const n=S.n;
+  const blocked=Array.from({length:n},()=>new Array(n).fill(false));
+  // crosses block (both user and auto)
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='cross') blocked[r][c]=true;
+  // queens block their lines/diagonals/region & themselves are occupied
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(S.state[r][c]!=='queen') continue;
+    blocked[r][c]=true;
+    for(let k=0;k<n;k++){ blocked[r][k]=true; blocked[k][c]=true; }
+    for(const [dr,dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+      const nr=r+dr,nc=c+dc; if(nr>=0&&nc>=0&&nr<n&&nc<n) blocked[nr][nc]=true;
+    }
+    const id=S.color[r][c];
+    for(let rr=0;rr<n;rr++)for(let cc=0;cc<n;cc++) if(S.color[rr][cc]===id) blocked[rr][cc]=true;
+  }
+  return blocked;
+}
+function regionHasQueen(id){
+  const n=S.n;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id && S.state[r][c]==='queen') return true;
+  return false;
+}
+function rowHasQueen(r){ for(let c=0;c<S.n;c++) if(S.state[r][c]==='queen') return true; return false; }
+function colHasQueen(c){ for(let r=0;r<S.n;r++) if(S.state[r][c]==='queen') return true; return false; }
+
+/* Find a forced queen: a row, column, or region with exactly one non-blocked cell. */
+function findForcedQueen(blocked){
+  const n=S.n, sol=S.solution;
+  // A forced cell is only offered if it agrees with the unique solution — a true
+  // single-candidate deduction always will; this guard just prevents ever pointing
+  // the player somewhere wrong if their own marks created a false constraint.
+  const agrees=(r,c)=> sol[r]===c;
+  // regions
+  for(let id=0;id<n;id++){
+    if(regionHasQueen(id)) continue;
+    const free=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id && !blocked[r][c]) free.push([r,c]);
+    if(free.length===1 && agrees(free[0][0],free[0][1])) return {r:free[0][0],c:free[0][1],
+      msg:t('forcedColor')};
+  }
+  // rows
+  for(let r=0;r<n;r++){
+    if(rowHasQueen(r)) continue;
+    const free=[];
+    for(let c=0;c<n;c++) if(!blocked[r][c]) free.push([r,c]);
+    if(free.length===1 && agrees(free[0][0],free[0][1])) return {r:free[0][0],c:free[0][1],
+      msg:t('forcedRow')};
+  }
+  // columns
+  for(let c=0;c<n;c++){
+    if(colHasQueen(c)) continue;
+    const free=[];
+    for(let r=0;r<n;r++) if(!blocked[r][c]) free.push([r,c]);
+    if(free.length===1 && agrees(free[0][0],free[0][1])) return {r:free[0][0],c:free[0][1],
+      msg:t('forcedCol')};
+  }
+  return null;
+}
+
+/* Find cells that can be logically eliminated (crossed) but aren't crossed yet.
+   We look for clean, explainable patterns:
+   - A region confined to a single row or single column ⇒ that row/col is used by
+     the region, so other cells of that row/col elsewhere can be crossed.
+   We only suggest cells that are also crosses in the true solution (safe + correct).
+*/
+function findEliminableCell(blocked){
+  const n=S.n, sol=S.solution;
+
+  // Pattern A: region fully contained in one row → cross the rest of that row.
+  for(let id=0;id<n;id++){
+    if(regionHasQueen(id)) continue;
+    const rows=new Set(), cols=new Set(), free=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id && !blocked[r][c]){ rows.add(r); cols.add(c); free.push([r,c]); }
+    if(free.length<2) continue;
+    if(rows.size===1){
+      const r=[...rows][0];
+      const targets=[];
+      for(let c=0;c<n;c++) if(S.color[r][c]!==id && !blocked[r][c] && S.state[r][c]==='empty' && sol[r]!==c) targets.push([r,c]);
+      if(targets.length) return {cells:targets, msg:t('elimRow')};
+    }
+    if(cols.size===1){
+      const c=[...cols][0];
+      const targets=[];
+      for(let r=0;r<n;r++) if(S.color[r][c]!==id && !blocked[r][c] && S.state[r][c]==='empty' && sol[r]!==c) targets.push([r,c]);
+      if(targets.length) return {cells:targets, msg:t('elimCol')};
+    }
+  }
+
+  // Pattern B: in some row, all free cells share a single region → that region's
+  // queen is in this row, so cross that region's cells in OTHER rows.
+  for(let r=0;r<n;r++){
+    if(rowHasQueen(r)) continue;
+    const free=[];
+    for(let c=0;c<n;c++) if(!blocked[r][c]) free.push(c);
+    if(free.length<1) continue;
+    const ids=new Set(free.map(c=>S.color[r][c]));
+    if(ids.size===1 && !regionHasQueen([...ids][0])){
+      const id=[...ids][0];
+      const targets=[];
+      for(let rr=0;rr<n;rr++){ if(rr===r) continue;
+        for(let cc=0;cc<n;cc++) if(S.color[rr][cc]===id && !blocked[rr][cc] && S.state[rr][cc]==='empty' && sol[rr]!==cc) targets.push([rr,cc]);
+      }
+      if(targets.length) return {cells:targets, msg:t('elimRowAllSame')};
+    }
+  }
+
+  // Pattern C: same as B but by column.
+  for(let c=0;c<n;c++){
+    if(colHasQueen(c)) continue;
+    const free=[];
+    for(let r=0;r<n;r++) if(!blocked[r][c]) free.push(r);
+    if(free.length<1) continue;
+    const ids=new Set(free.map(r=>S.color[r][c]));
+    if(ids.size===1 && !regionHasQueen([...ids][0])){
+      const id=[...ids][0];
+      const targets=[];
+      for(let cc=0;cc<n;cc++){ if(cc===c) continue;
+        for(let rr=0;rr<n;rr++) if(S.color[rr][cc]===id && !blocked[rr][cc] && S.state[rr][cc]==='empty' && sol[rr]!==cc) targets.push([rr,cc]);
+      }
+      if(targets.length) return {cells:targets, msg:t('elimColAllSame')};
+    }
+  }
+
+  return null;
+}
+
+/* Explainable elimination based on a queen already placed by the player:
+   a still-empty cell can be crossed because it shares a row / column / colour
+   region with a queen, or it touches one diagonally. Returns the cells plus a
+   message naming the exact reason, so the hint teaches the rule. */
+function findQueenBasedElimination(blocked){
+  const n=S.n, sol=S.solution;
+  const queens=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') queens.push([r,c]);
+  if(!queens.length) return null;
+
+  // gather candidate empty cells (never a real solution-queen cell) grouped by reason
+  const byReason={row:[],col:[],region:[],touch:[]};
+  for(const [qr,qc] of queens){
+    const qid=S.color[qr][qc];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+      if(S.state[r][c]!=='empty') continue;
+      if(sol[r]===c) continue; // safety: that cell holds a queen in the solution
+      if(r===qr && c===qc) continue;
+      if(r===qr){ byReason.row.push([r,c]); }
+      else if(c===qc){ byReason.col.push([r,c]); }
+      else if(S.color[r][c]===qid){ byReason.region.push([r,c]); }
+      else if(Math.abs(r-qr)<=1 && Math.abs(c-qc)<=1){ byReason.touch.push([r,c]); }
+    }
+  }
+  const uniq=arr=>{const s=new Set(),o=[];for(const [r,c] of arr){const k=r+'-'+c;if(!s.has(k)){s.add(k);o.push([r,c]);}}return o;};
+  if(byReason.row.length) return {cells:uniq(byReason.row), msg:t('queenRow')};
+  if(byReason.col.length) return {cells:uniq(byReason.col), msg:t('queenCol')};
+  if(byReason.region.length) return {cells:uniq(byReason.region), msg:t('queenRegion')};
+  if(byReason.touch.length) return {cells:uniq(byReason.touch), msg:t('queenTouch')};
+  return null;
+}
+
+/* Helper: list the colour regions that still need a queen, with their free cells
+   computed from the current snapshot (blocked = derived from queens + crosses). */
+function regionsNeedingQueen(blocked){
+  const n=S.n;
+  const info=[];
+  for(let id=0;id<n;id++){
+    if(regionHasQueen(id)) continue;
+    const free=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.color[r][c]===id && !blocked[r][c]) free.push([r,c]);
+    info.push({id, free});
+  }
+  return info;
+}
+
+/* Deduction: a colour whose remaining free cells all fall on ONE row (or column)
+   reserves that row/column. Any other free cell on that same row/column can be
+   crossed. This is the most common teaching pattern and works straight from the
+   snapshot. Returns {cells,msg} or null. */
+function findLineReservedByColor(blocked){
+  const n=S.n, sol=S.solution;
+  const regs=regionsNeedingQueen(blocked);
+  for(const {id,free} of regs){
+    if(free.length<1) continue;
+    const rows=new Set(free.map(([r])=>r)), cols=new Set(free.map(([,c])=>c));
+    if(rows.size===1){
+      const r=[...rows][0]; const targets=[];
+      for(let c=0;c<n;c++) if(S.color[r][c]!==id && !blocked[r][c] && S.state[r][c]==='empty' && sol[r]!==c) targets.push([r,c]);
+      if(targets.length) return {cells:targets, msg:t('lineReservedRow')};
+    }
+    if(cols.size===1){
+      const c=[...cols][0]; const targets=[];
+      for(let r=0;r<n;r++) if(S.color[r][c]!==id && !blocked[r][c] && S.state[r][c]==='empty' && sol[r]!==c) targets.push([r,c]);
+      if(targets.length) return {cells:targets, msg:t('lineReservedCol')};
+    }
+  }
+  return null;
+}
+
+/* Deduction by one-step look-ahead on the current snapshot: a free cell can be
+   crossed if PLACING a queen there would leave some row, column or colour with
+   no available cell at all (a contradiction). This teaches "if I put it here,
+   something else breaks". Returns {cells,msg,reason} or null. */
+function findContradictionElimination(blocked){
+  const n=S.n, sol=S.solution;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(blocked[r][c]) continue;
+    if(S.state[r][c]==='queen') continue;
+    if(sol[r]===c) continue;
+    const id=S.color[r][c];
+    const blocks=(rr,cc)=> rr===r || cc===c || S.color[rr][cc]===id || (Math.abs(rr-r)<=1&&Math.abs(cc-c)<=1);
+    let reason=null, victimRow=-1, victimCol=-1, victimColor=-1;
+    // rows
+    for(let rr=0; rr<n && !reason; rr++){
+      if(rr===r) continue; if(rowHasQueen(rr)) continue;
+      let any=false;
+      for(let cc=0;cc<n;cc++){ if(blocked[rr][cc]) continue; if(blocks(rr,cc)) continue; any=true; break; }
+      if(!any){ reason='fila'; victimRow=rr; }
+    }
+    // columns
+    for(let cc=0; cc<n && !reason; cc++){
+      if(cc===c) continue; if(colHasQueen(cc)) continue;
+      let any=false;
+      for(let rr=0;rr<n;rr++){ if(blocked[rr][cc]) continue; if(blocks(rr,cc)) continue; any=true; break; }
+      if(!any){ reason='columna'; victimCol=cc; }
+    }
+    // colours
+    for(let oid=0; oid<n && !reason; oid++){
+      if(oid===id) continue; if(regionHasQueen(oid)) continue;
+      let any=false;
+      for(let rr=0;rr<n && !any;rr++)for(let cc=0;cc<n;cc++){ if(S.color[rr][cc]!==oid) continue; if(blocked[rr][cc]) continue; if(blocks(rr,cc)) continue; any=true; break; }
+      if(!any){ reason='color'; victimColor=oid; }
+    }
+    if(reason){
+      let tip;
+      if(reason==='fila'){
+        tip = t('contraFila', r, c, victimRow);
+      } else if(reason==='columna'){
+        tip = t('contraCol', r, c, victimCol);
+      } else {
+        tip = t('contraColor');
+      }
+      return {cells:[[r,c]], victimRow, victimCol, victimColor, reason,
+        msg: t('contraEnd', tip)};
+    }
+  }
+  return null;
+}
+
+
+/* =======================================================================
+   TÉCNICA: Forma del color bloquea sus vecinas
+   -----------------------------------------------------------------------
+   Para cada color sin corona, la corona irá en alguna de sus casillas
+   libres. Cualquier casilla FUERA del color que sea adyacente (incluyendo
+   diagonal) a TODAS las casillas libres del color se puede tachar: pase
+   donde pase la corona dentro del color, esa celda siempre quedará
+   bloqueada por adyacencia.
+   ======================================================================= */
+function findShapeBasedElimination(blocked){
+  const n=S.n, sol=S.solution;
+  const regs=regionsNeedingQueen(blocked);
+
+  for(const {id, free} of regs){
+    if(free.length<1) continue;
+    // For each non-color empty cell, check whether it is adjacent to every
+    // free cell of the region (ortho + diagonal counts, same as the rule).
+    const adjToAll=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+      if(S.color[r][c]===id) continue;        // must be outside the colour
+      if(blocked[r][c]) continue;              // already blocked
+      if(S.state[r][c]!=='empty') continue;
+      if(sol[r]===c) continue;                 // safety guard
+      // is it adjacent to every free cell of this colour?
+      const adjAll=free.every(([fr,fc])=>Math.abs(fr-r)<=1 && Math.abs(fc-c)<=1);
+      if(adjAll) adjToAll.push([r,c]);
+    }
+    if(adjToAll.length){
+      return {cells:adjToAll, msg:t('shapeElim')};
+    }
+  }
+  return null;
+}
+
+/* =======================================================================
+   TÉCNICA: Colores con alternativas fuera de la fila/columna
+   -----------------------------------------------------------------------
+   En una fila (o columna) donde conviven varios colores sin corona:
+   - Si algún color tiene casillas libres SOLO en esa fila (está confinado),
+     reserva la fila → las casillas de los demás colores en esa fila se
+     descartan (ya lo cubre findLineReservedByColor).
+   - Versión nueva: si un color tiene casillas libres en esa fila PERO
+     también tiene opciones fuera de ella, sus casillas en esa fila son
+     candidatos a descartar: si simultáneamente otro color está confinado
+     a esa fila, las de este color con alternativas se descartan.
+   También opera por columna.
+   ======================================================================= */
+function findAlternativeColorElimination(blocked){
+  const n=S.n, sol=S.solution;
+
+  // Per row: collect colours present and whether each has options outside the row
+  for(let r=0;r<n;r++){
+    if(rowHasQueen(r)) continue;
+    const colorsInRow=new Map(); // id -> cells in this row (free)
+    for(let c=0;c<n;c++){
+      if(blocked[r][c]) continue;
+      const id=S.color[r][c];
+      if(regionHasQueen(id)) continue;
+      if(!colorsInRow.has(id)) colorsInRow.set(id,[]);
+      colorsInRow.get(id).push([r,c]);
+    }
+    if(colorsInRow.size<2) continue;
+
+    // Which colours are CONFINED to this row (no free cells elsewhere)?
+    const confined=[], hasElsewhere=[];
+    for(const [id,cells] of colorsInRow){
+      let outside=false;
+      for(let rr=0;rr<n && !outside;rr++){
+        if(rr===r) continue;
+        for(let cc=0;cc<n;cc++) if(S.color[rr][cc]===id && !blocked[rr][cc]){outside=true;break;}
+      }
+      if(outside) hasElsewhere.push({id,cells});
+      else confined.push({id,cells});
+    }
+    // Only useful if at least one is confined (reserves the row) AND others have alternatives
+    if(confined.length>0 && hasElsewhere.length>0){
+      const targets=[];
+      for(const {cells} of hasElsewhere)
+        for(const [tr,tc] of cells)
+          if(S.state[tr][tc]==='empty' && sol[tr]!==tc) targets.push([tr,tc]);
+      if(targets.length) return {cells:targets, msg:t('altRow')};
+    }
+  }
+
+  // Same logic per column
+  for(let c=0;c<n;c++){
+    if(colHasQueen(c)) continue;
+    const colorsInCol=new Map();
+    for(let r=0;r<n;r++){
+      if(blocked[r][c]) continue;
+      const id=S.color[r][c];
+      if(regionHasQueen(id)) continue;
+      if(!colorsInCol.has(id)) colorsInCol.set(id,[]);
+      colorsInCol.get(id).push([r,c]);
+    }
+    if(colorsInCol.size<2) continue;
+
+    const confined=[], hasElsewhere=[];
+    for(const [id,cells] of colorsInCol){
+      let outside=false;
+      for(let cc=0;cc<n && !outside;cc++){
+        if(cc===c) continue;
+        for(let rr=0;rr<n;rr++) if(S.color[rr][cc]===id && !blocked[rr][cc]){outside=true;break;}
+      }
+      if(outside) hasElsewhere.push({id,cells});
+      else confined.push({id,cells});
+    }
+    if(confined.length>0 && hasElsewhere.length>0){
+      const targets=[];
+      for(const {cells} of hasElsewhere)
+        for(const [tr,tc] of cells)
+          if(S.state[tr][tc]==='empty' && sol[tr]!==tc) targets.push([tr,tc]);
+      if(targets.length) return {cells:targets, msg:t('altCol')};
+    }
+  }
+  return null;
+}
+
+/* =======================================================================
+   TÉCNICA: Conjuntos desnudos (naked sets) — generalización para N≥2
+   -----------------------------------------------------------------------
+   Si N colores (sin corona) tienen sus casillas libres confinadas
+   exactamente dentro de las mismas N filas (o N columnas), esas N filas
+   quedan reservadas para esos N colores. Cualquier otro color que tenga
+   casillas en esas filas puede descartarlas.
+
+   Ejemplo con N=2: los colores A y B solo tienen casillas libres en las
+   filas 3 y 5. Sus coronas deben ir en esas dos filas. Por tanto,
+   ningún otro color puede tener su corona en la fila 3 ni en la 5 →
+   se descartan sus casillas ahí.
+
+   Funciona igual por columnas. Se busca para N=2,3,4,...
+   ======================================================================= */
+function findNakedSet(blocked){
+  const n=S.n, sol=S.solution;
+
+  const colorFreeRows=new Map();
+  const colorFreeCols=new Map();
+  for(let id=0;id<n;id++){
+    if(regionHasQueen(id)) continue;
+    const rows=new Set(), cols=new Set();
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+      if(S.color[r][c]===id && !blocked[r][c]){ rows.add(r); cols.add(c); }
+    }
+    if(rows.size>0){ colorFreeRows.set(id,rows); colorFreeCols.set(id,cols); }
+  }
+  const ids=[...colorFreeRows.keys()];
+  if(ids.length<2) return null;
+
+  function tryAxis(axis){
+    const freeLines=axis==='row' ? colorFreeRows : colorFreeCols;
+
+    for(let k=2; k<=Math.min(ids.length-1, Math.floor(n/2)+1, 5); k++){
+      const combos=[];
+      function pick(start, chosen){
+        if(chosen.length===k){ combos.push(chosen.slice()); return; }
+        for(let i=start;i<ids.length;i++){ chosen.push(ids[i]); pick(i+1,chosen); chosen.pop(); }
+      }
+      pick(0,[]);
+
+      for(const group of combos){
+        const unionLines=new Set();
+        for(const id of group) for(const l of freeLines.get(id)) unionLines.add(l);
+        if(unionLines.size!==k) continue;
+
+        const targets=[];
+        for(let id=0;id<n;id++){
+          if(group.includes(id)) continue;
+          if(regionHasQueen(id)) continue;
+          for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+            if(S.color[r][c]!==id) continue;
+            if(blocked[r][c]) continue;
+            if(S.state[r][c]!=='empty') continue;
+            if(sol[r]===c) continue;
+            const line=axis==='row' ? r : c;
+            if(unionLines.has(line)) targets.push([r,c]);
+          }
+        }
+        if(targets.length===0) continue;
+
+        const lineLabel=axis==='row' ? 'fila' : 'columna';
+        const linesArr=[...unionLines].sort((a,b)=>a-b).map(l=>l+1);
+        const linesList=linesArr.length===2
+          ? (currentLang==='es' ? `las ${lineLabel}s ${linesArr[0]} y ${linesArr[1]}` : `rows ${linesArr[0]} and ${linesArr[1]}`)
+          : (currentLang==='es' ? `las ${lineLabel}s ${linesArr.slice(0,-1).join(', ')} y ${linesArr[linesArr.length-1]}` : `${axis==='row'?'rows':'columns'} ${linesArr.slice(0,-1).join(', ')} and ${linesArr[linesArr.length-1]}`);
+
+        const msg = axis==='row' ? t('nakedRow', k, linesList) : t('nakedCol', k, linesList);
+
+        return {cells:targets, msg};
+      }
+    }
+    return null;
+  }
+
+  return tryAxis('row') || tryAxis('col');
+}
+
+
+/* =======================================================================
+   TÉCNICA: Eliminación encadenada (chained deduction)
+   -----------------------------------------------------------------------
+   Aplica iterativamente las deducciones de confinamiento conocidas para
+   construir un "blocked" extendido, y luego busca nuevas pistas sobre él.
+
+   Útil cuando ninguna deducción de un solo paso funciona por sí sola,
+   pero encadenando dos o más sí emerge una casilla o conjunto a tachar.
+
+   Ejemplo: el verde está confinado a la columna 2 (deducción 1), por
+   tanto el rojo pierde la columna 2 y queda confinado a la columna 4
+   (deducción 2). Solo con el blocked original no se veía, pero aplicando
+   la primera deducción aparece la segunda.
+   ======================================================================= */
+function findChainedElimination(blocked){
+  const n=S.n, sol=S.solution;
+
+  // Only run if the user has no wrong queens or wrong crosses
+  // (errors are handled earlier in giveHint; operating on a corrupted state gives wrong results)
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(S.state[r][c]==='queen' && sol[r]!==c) return null; // wrong queen
+    if(S.state[r][c]==='cross' && sol[r]===c && !(S.auto&&S.auto.has(r+'-'+c))) return null; // wrong cross
+  }
+
+  // Pre-compute solution cell per color
+  const solCell=new Array(n).fill(null);
+  for(let r=0;r<n;r++) solCell[S.color[r][sol[r]]]=([r,sol[r]]);
+
+  // Extended blocked: copy of blocked, will be expanded by propagation
+  const ext=blocked.map(row=>row.slice());
+
+  function propagate(){
+    let changed=false;
+    for(let id=0;id<n;id++){
+      if(regionHasQueen(id)) continue;
+      const sc=solCell[id]; if(!sc) continue; // no solution cell for this color?
+      const [sr,sc_]=sc;
+      const free=[];
+      for(let r=0;r<n;r++)for(let c=0;c<n;c++)
+        if(S.color[r][c]===id && !ext[r][c]) free.push([r,c]);
+      if(free.length===0) continue;
+      const rows=new Set(free.map(([r])=>r));
+      const cols=new Set(free.map(([,c])=>c));
+      // Only propagate if all free cells are in the same row AND that row is the solution row
+      if(rows.size===1 && [...rows][0]===sr){
+        for(let c=0;c<n;c++){
+          if(S.color[sr][c]!==id && !ext[sr][c] && sol[sr]!==c){ ext[sr][c]=true; changed=true; }
+        }
+      }
+      // Only propagate if all free cells are in the same col AND that col is the solution col
+      if(cols.size===1 && [...cols][0]===sc_){
+        for(let r=0;r<n;r++){
+          if(S.color[r][sc_]!==id && !ext[r][sc_] && sol[r]!==sc_){ ext[r][sc_]=true; changed=true; }
+        }
+      }
+    }
+    return changed;
+  }
+
+  let steps=0;
+  while(propagate() && steps++<n*2);
+
+  // Now look for any deduction visible in ext but not in blocked
+  // 1. Forced queen: a color/row/col with one free cell in ext
+  for(let id=0;id<n;id++){
+    if(regionHasQueen(id)) continue;
+    const free=[];
+    for(let r=0;r<n;r++)for(let c=0;c<n;c++)
+      if(S.color[r][c]===id && !ext[r][c]) free.push([r,c]);
+    if(free.length===1 && sol[free[0][0]]===free[0][1]){
+      // Only show if this wasn't already visible with the original blocked
+      const origFree=[];
+      for(let r=0;r<n;r++)for(let c=0;c<n;c++)
+        if(S.color[r][c]===id && !blocked[r][c]) origFree.push([r,c]);
+      if(origFree.length>1) return {cells:[free[0]], queen:true, msg:t('chainedQueen')};
+    }
+  }
+
+  // 2. Cells blocked in ext but not in blocked → these can be crossed, with explanation
+  const newlyCrossable=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(!ext[r][c]) continue;          // not newly blocked
+    if(blocked[r][c]) continue;       // already blocked before
+    if(S.state[r][c]!=='empty') continue;
+    if(sol[r]===c) continue;          // safety
+    newlyCrossable.push([r,c]);
+  }
+  if(newlyCrossable.length){
+    return {cells:newlyCrossable, queen:false, msg:t('chainedCross')};
+  }
+  return null;
+}
+
+
+/* =======================================================================
+   TEMPORIZADOR
+   ======================================================================= */
+function startTimer(){
+  stopTimer(); S.startTime=Date.now();
+  timerEl.textContent='0:00';
+  S.timerId=setInterval(()=>{
+    const s=Math.floor((Date.now()-S.startTime)/1000);
+    const m=Math.floor(s/60);
+    timerEl.textContent=`${m}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+}
+function stopTimer(){ if(S.timerId){clearInterval(S.timerId);S.timerId=null;} S.lastElapsed=Date.now()-S.startTime; }
+
+/* =======================================================================
+   UTIL
+   ======================================================================= */
+let flashTO=null;
+function flashStatus(txt){
+  const prev=statusEl.textContent, prevCls=statusEl.className;
+  statusEl.textContent=txt;
+  clearTimeout(flashTO);
+  flashTO=setTimeout(()=>{ if(!S.finished){ statusEl.textContent=prev; statusEl.className=prevCls; } },1800);
+}
+
+/* =======================================================================
+   CAPA DE PRESENTACIÓN — sincroniza elementos visuales del nuevo estilo
+   (progreso, estadísticas, contador de pistas). No altera la lógica.
+   ======================================================================= */
+(function(){
+  const $=id=>document.getElementById(id);
+  function syncStats(){
+    const n=S.n||0; let q=0;
+    if(S.state) for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(S.state[r][c]==='queen') q++;
+    const sq=$('statQueens'); if(sq) sq.textContent=`${q} / ${n}`;
+    const pb=$('progress-bar'); if(pb) pb.style.width = n?`${(q/n)*100}%`:'0%';
+    const hc=$('hintCount'); if(hc) hc.textContent = t('hintsUsed', S.hintsUsed||0);
+  }
+  // Light polling keeps the visuals in sync with state without touching game logic.
+  setInterval(syncStats, 250);
+  // Also sync immediately after any pointer or button interaction.
+  document.addEventListener('pointerup', ()=>setTimeout(syncStats,0), true);
+  document.addEventListener('click', ()=>setTimeout(syncStats,0), true);
+})();
+
+/* =======================================================================
+   MULTIJUGADOR
+   -----------------------------------------------------------------------
+   Sin servidor: el anfitrión genera un código de 6 dígitos (5 dígitos de
+   semilla + 1 dígito con el número de tableros). Cada jugador, en su
+   propio dispositivo, introduce ese código y genera exactamente los
+   mismos tableros (misma semilla → mismo tablero, vía mulberry32),
+   resolviéndolos de forma independiente. Al final se comparan tiempos.
+   No toca ninguna lógica del modo un jugador.
+   ======================================================================= */
+const MP = {
+  active:false,
+  size:0,
+  totalBoards:0,
+  seedBase:0,
+  boardIndex:0,   // 0-based index of the board currently being played
+  results:[],     // {time (s), hints} for each board solved this round
+  code:''
+};
+
+function formatTime(totalSeconds){
+  const m=Math.floor(totalSeconds/60), s=totalSeconds%60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function copyText(text, btnEl){
+  const done=()=>{
+    if(!btnEl) return;
+    const orig=btnEl.textContent;
+    btnEl.textContent = t('mpCopied');
+    setTimeout(()=>{ btnEl.textContent=orig; },1500);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));
+  } else {
+    fallbackCopy(text,done);
+  }
+}
+function fallbackCopy(text,done){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    done();
+  }catch(_){}
+}
+
+function buildSizePicker(el, values, onSelect){
+  el.innerHTML='';
+  values.forEach(v=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='size-btn'; b.textContent=v;
+    b.addEventListener('click',()=>{
+      el.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      onSelect(v);
+    });
+    el.appendChild(b);
+  });
+}
+
+/* ---------- UI state toggles while a multiplayer match is active ---------- */
+function applyMPUIState(){
+  const btnMenuEl=document.getElementById('btnMenu');
+  const btnNewEl=document.getElementById('btnNew');
+  const btnAbandonEl=document.getElementById('btnMpAbandon');
+  if(btnMenuEl) btnMenuEl.style.display = MP.active ? 'none' : '';
+  if(btnNewEl) btnNewEl.style.display = MP.active ? 'none' : '';
+  if(btnAbandonEl) btnAbandonEl.style.display = MP.active ? '' : 'none';
+  const info=document.getElementById('mpGameInfo');
+  if(info) info.style.display = MP.active ? '' : 'none';
+}
+function updateMPGameInfo(){
+  const info=document.getElementById('mpGameInfo');
+  if(!info || !MP.active) return;
+  info.innerHTML = `${t('mpBoardOf', MP.boardIndex+1, MP.totalBoards)} · <b>${MP.code}</b> `+
+    `<button id="btnMpCopyInGame" class="hint-show-btn secondary" style="padding:2px 9px;font-size:.72rem;display:inline-flex;width:auto;">📋</button>`;
+  const cb=document.getElementById('btnMpCopyInGame');
+  if(cb) cb.addEventListener('click', ()=>copyText(MP.code, cb));
+}
+
+/* ---------- Setup screen: open the multiplayer choice modal ---------- */
+const mpChoiceOverlay=document.getElementById('mpChoiceOverlay');
+const mpHostOverlay=document.getElementById('mpHostOverlay');
+const mpJoinOverlay=document.getElementById('mpJoinOverlay');
+const mpBoardResultOverlay=document.getElementById('mpBoardResultOverlay');
+const mpFinalOverlay=document.getElementById('mpFinalOverlay');
+
+document.getElementById('btnMultiplayer').addEventListener('click', ()=>{
+  mpChoiceOverlay.classList.add('show');
+});
+document.getElementById('btnMpChoiceCancel').addEventListener('click', ()=>{
+  mpChoiceOverlay.classList.remove('show');
+});
+document.getElementById('btnMpHost').addEventListener('click', ()=>{
+  mpChoiceOverlay.classList.remove('show');
+  openHostSetup();
+});
+document.getElementById('btnMpJoin').addEventListener('click', ()=>{
+  mpChoiceOverlay.classList.remove('show');
+  document.getElementById('mpJoinInput').value='';
+  document.getElementById('mpJoinError').textContent='';
+  mpJoinOverlay.classList.add('show');
+});
+document.getElementById('btnMpJoinCancel').addEventListener('click', ()=>{
+  mpJoinOverlay.classList.remove('show');
+});
+document.getElementById('btnMpHostCancel1').addEventListener('click', ()=>{
+  mpHostOverlay.classList.remove('show');
+});
+
+/* ---------- Host setup ---------- */
+let mpChosenSize=null, mpChosenCount=null;
+function openHostSetup(){
+  document.getElementById('mpHostConfig').classList.remove('hidden');
+  document.getElementById('mpHostCode').classList.add('hidden');
+  mpChosenSize=null; mpChosenCount=null;
+  document.getElementById('btnMpGenerate').disabled=true;
+  buildSizePicker(document.getElementById('mpSizes'), [4,5,6,7,8,9,10], sz=>{
+    mpChosenSize=sz; updateGenerateBtn();
+  });
+  buildSizePicker(document.getElementById('mpCounts'), [1,2,3,4,5,6,7,8,9,10], n=>{
+    mpChosenCount=n; updateGenerateBtn();
+  });
+  mpHostOverlay.classList.add('show');
+}
+function updateGenerateBtn(){
+  document.getElementById('btnMpGenerate').disabled = !(mpChosenSize && mpChosenCount);
+}
+document.getElementById('btnMpGenerate').addEventListener('click', ()=>{
+  if(!mpChosenSize || !mpChosenCount) return;
+  const seedBase = 1000 + Math.floor(Math.random()*9000); // random 4-digit seed
+  const sizeDigit = mpChosenSize===10 ? 0 : mpChosenSize;   // size 4-10 -> 1 digit (10 -> 0)
+  const countDigit = mpChosenCount===10 ? 0 : mpChosenCount; // count 1-10 -> 1 digit (10 -> 0)
+  const code = String(seedBase) + String(sizeDigit) + String(countDigit);
+  MP.size=mpChosenSize; MP.totalBoards=mpChosenCount; MP.seedBase=seedBase; MP.code=code;
+  document.getElementById('mpCodeDisplay').textContent=code;
+  document.getElementById('mpHostConfig').classList.add('hidden');
+  document.getElementById('mpHostCode').classList.remove('hidden');
+});
+document.getElementById('btnMpCopyCode').addEventListener('click', (e)=>{
+  copyText(MP.code, e.currentTarget);
+});
+document.getElementById('btnMpHostStart').addEventListener('click', ()=>{
+  mpHostOverlay.classList.remove('show');
+  beginMultiplayerMatch();
+});
+
+/* ---------- Join flow ---------- */
+document.getElementById('mpJoinInput').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
+});
+document.getElementById('btnMpJoinStart').addEventListener('click', ()=>{
+  const val=document.getElementById('mpJoinInput').value.trim();
+  const errEl=document.getElementById('mpJoinError');
+  if(!/^\d{6}$/.test(val)){ errEl.textContent = t('mpBadCode'); return; }
+  const seedBase = parseInt(val.slice(0,4),10);
+  const sizeDigit = parseInt(val.slice(4,5),10);
+  const countDigit = parseInt(val.slice(5,6),10);
+  const size = sizeDigit===0 ? 10 : sizeDigit;
+  const totalBoards = countDigit===0 ? 10 : countDigit;
+  if(size<4 || size>10){ errEl.textContent = t('mpBadCode'); return; }
+  MP.size=size; MP.totalBoards=totalBoards; MP.seedBase=seedBase; MP.code=val;
+  mpJoinOverlay.classList.remove('show');
+  beginMultiplayerMatch();
+});
+
+/* ---------- Running the match ---------- */
+function beginMultiplayerMatch(){
+  MP.active=true;
+  MP.boardIndex=0;
+  MP.results=[];
+  applyMPUIState();
+  startMPBoard();
+}
+function startMPBoard(){
+  const seed = MP.seedBase + MP.boardIndex;
+  startGame(MP.size, seed);
+}
+
+function handleMPWin(){
+  const elapsed=Math.floor((S.lastElapsed!=null?S.lastElapsed:(Date.now()-S.startTime))/1000);
+  MP.results.push({time:elapsed, hints:S.hintsUsed||0});
+  const isLast = (MP.boardIndex+1) >= MP.totalBoards;
+  if(!isLast){
+    document.getElementById('mpBoardResultTime').textContent=formatTime(elapsed);
+    document.getElementById('mpBoardResultMeta').textContent =
+      t('mpBoardMeta', MP.boardIndex+1, MP.totalBoards, S.hintsUsed||0);
+    mpBoardResultOverlay.classList.add('show');
+  } else {
+    showMPFinal();
+  }
+}
+document.getElementById('btnMpNext').addEventListener('click', ()=>{
+  mpBoardResultOverlay.classList.remove('show');
+  MP.boardIndex++;
+  startMPBoard();
+});
+
+function showMPFinal(){
+  const listEl=document.getElementById('mpFinalList');
+  let totalTime=0, totalHints=0;
+  listEl.innerHTML = MP.results.map((r,i)=>{
+    totalTime+=r.time; totalHints+=r.hints;
+    return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">`+
+      `<span>${t('mpBoardLabel', i+1)}</span>`+
+      `<span>${formatTime(r.time)}${r.hints>0?` · 💡 ${r.hints}`:''}</span>`+
+      `</div>`;
+  }).join('');
+  document.getElementById('mpFinalTotalTime').textContent=formatTime(totalTime);
+  document.getElementById('mpFinalTotalHints').textContent=totalHints;
+  mpFinalOverlay.classList.add('show');
+}
+document.getElementById('btnMpCopyResults').addEventListener('click', (e)=>{
+  let totalTime=0, totalHints=0;
+  const lines=MP.results.map((r,i)=>{
+    totalTime+=r.time; totalHints+=r.hints;
+    const hintTxt = r.hints>0 ? ` (${r.hints} ${currentLang==='es'?'pista'+(r.hints>1?'s':''):'hint'+(r.hints>1?'s':'')})` : '';
+    return `${t('mpBoardLabel', i+1)}: ${formatTime(r.time)}${hintTxt}`;
+  });
+  lines.push('');
+  lines.push(`${t('mpTotalTimeLabel')}: ${formatTime(totalTime)}`);
+  lines.push(`${t('mpTotalHintsLabel')}: ${totalHints}`);
+  lines.push(`${t('mpCodeLabel')}: ${MP.code}`);
+  copyText(lines.join('\n'), e.currentTarget);
+});
+document.getElementById('btnMpReplay').addEventListener('click', ()=>{
+  confirmDo(t('confirmMpReplay'), doMPReplay);
+});
+function doMPReplay(){
+  mpFinalOverlay.classList.remove('show');
+  MP.seedBase += MP.totalBoards;
+  const sizeDigit = MP.size===10 ? 0 : MP.size;
+  const countDigit = MP.totalBoards===10 ? 0 : MP.totalBoards;
+  MP.code = String(MP.seedBase) + String(sizeDigit) + String(countDigit);
+  MP.boardIndex=0; MP.results=[];
+  startMPBoard();
+}
+document.getElementById('btnMpHome').addEventListener('click', ()=>{
+  confirmDo(t('confirmMpHome'), doMPHome);
+});
+function doMPHome(){
+  mpFinalOverlay.classList.remove('show');
+  leaveMultiplayerToSetup();
+}
+document.getElementById('btnMpAbandon').addEventListener('click', ()=>{
+  confirmDo(t('confirmMpAbandon'), doMPAbandon);
+});
+function doMPAbandon(){
+  mpBoardResultOverlay.classList.remove('show');
+  mpFinalOverlay.classList.remove('show');
+  leaveMultiplayerToSetup();
+}
+function leaveMultiplayerToSetup(){
+  MP.active=false;
+  applyMPUIState();
+  stopTimer();
+  gameEl.classList.add('hidden'); setupEl.classList.remove('hidden');
+  const dedEl=document.getElementById('dedication'); if(dedEl) dedEl.style.display='';
+}
+</script>
+</body>
+</html>
